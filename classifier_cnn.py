@@ -63,11 +63,17 @@ class ClassifierCNN():
                 # compute loss between logits and targets
                 loss = self.loss_fn(logits, label_batch)
 
+                # zero out gradients
+                self.opt.zero_grad()
+
+                # run backprop on loss
+                loss.backward()
+
+                # run optimizer step
+                self.opt.step()
+
                 # accumulate running loss
                 running_loss += loss.item()
-
-                if i % 100 == 99:
-                    print(running_loss / i)
 
             # done with current epoch
 
