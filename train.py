@@ -10,7 +10,7 @@ from dataloader_utils import make_mnist_dataloaders
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
+    parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
     parser.add_argument('--bs', type=int, default=64, help='batch size')
     parser.add_argument('--nw', type=int, default=1, help='number of dataloader workers')
     parser.add_argument('--ne', type=int, default=20, help='number of training epochs')
