@@ -43,17 +43,43 @@ class ClassifierCNN():
     def print_structure(self):
         print('[INFO] \'{}\' network structure \n{}'.format(self.conf.name, self.net))
 
-    def train(self, dataloader, num_epochs):
+    def compute_accuracy(self, data_loader):
+        # counters for total number of samples in the dataloader and correct predictions
+        total = 0
+        correct = 0
+
+        # iterate through batches
+        for batch in data_loader:
+
+            # parse batch and send to device
+            sample_batch = batch[0].to(self.device)
+            label_batch = batch[1].to(self.device)
+
+            # get predicted outputs
+            pred = torch.argmax(self.net(sample_batch), dim=1)
+
+            # count where predicted == labels and add to correct count
+            correct += torch.sum((pred == label_batch)).item()
+
+            # add this batch size to total count
+            total += sample_batch.shape[0]
+
+        # compute accuracy on dataloader
+        accuracy = 100.0 * (float(correct) / float(total))
+
+        return accuracy
+
+    def train(self, train_loader, test_loader, num_epochs):
         # iterate through epochs
         for e in range(num_epochs):
 
             # accumulator for loss over an epoch
             running_loss = 0.0
 
-            # iteate through batches
-            for i, batch in enumerate(dataloader):
+            # iterate through batches
+            for i, batch in enumerate(train_loader):
 
-                # get images from batch
+                # parse batch and send to device
                 sample_batch = batch[0].to(self.device)
                 label_batch = batch[1].to(self.device)
 
@@ -80,9 +106,12 @@ class ClassifierCNN():
             # compute average wasserstein distance over epoch
             epoch_avg_loss = running_loss / i
 
+            # compute model accuracy on the testing set
+            accuracy = self.compute_accuracy(test_loader)
+
             # log epoch stats info
-            logging.info('| epoch: {:3} | cross entropy loss: {:6.2f} \
-                |'.format(e+1, epoch_avg_loss))
+            logging.info('| epoch: {:3} | training loss: {:6.2f} |' \
+                ' validation accuracy: {:6.2f} |'.format(e+1, epoch_avg_loss, accuracy))
 
             # save current state of network
             torch.save(self.net.state_dict(), '{}{}_net.pt'.format(self.conf.ld, self.conf.name))

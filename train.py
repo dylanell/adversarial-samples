@@ -35,7 +35,7 @@ def main():
     )
 
     # train classifier on training set
-    classifier.train(train_loader, args.ne)
+    classifier.train(train_loader, test_loader, args.ne)
 
 if __name__ == '__main__':
     main()
