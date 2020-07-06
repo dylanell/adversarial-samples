@@ -3,32 +3,40 @@ General data handling utilities.
 """
 
 import numpy as np
-import imageio
-import glob
+import matplotlib.pyplot as plt
+import cv2
 
-def tile_images(imgs):
-    """
-    Description: Given a batch of images (must be a perfect square number of samples e.g. 64),
-        organize them into a larger tiled image.
-    Args:
-        - image (4D numpy array): batch of 3D images.
-    Returns:
-        - tile_imgs (3D numpy array): single image of tiled image batch.
-    """
+def inputs_with_outputs(inputs, labels, output_probs, output_preds):
 
-    # scale pixel values to [0, 255] and cast to unsigned 8-bit integers (common image datatype)
-    min_data, max_data = [float(np.min(imgs)), float(np.max(imgs))]
-    min_scale, max_scale = [0., 255.]
-    imgs = ((max_scale - min_scale) * (imgs - min_data) / (max_data - min_data)) + min_scale
-    imgs = imgs.astype(np.uint8)
+    # remap inputs to [0 - 255] and convetr to uint 8
+    new_min, new_max = 0, 255
+    min, max = np.min(inputs), np.max(inputs)
+    inputs = (((inputs - min) / (max - min)) * (new_max - new_min)) + new_min
+    inputs = inputs.astype(np.uint8)
 
-    # tile images to larger image
-    n_dim, h_dim, w_dim, d_dim = imgs.shape
-    b_h, b_w = int(np.sqrt(n_dim)), int(np.sqrt(n_dim))
-    tile_imgs = np.zeros((b_h*h_dim, b_w*w_dim, d_dim), dtype=np.uint8)
-    for t_idx in range(n_dim):
-        n_idx = w_dim * (t_idx % b_w)
-        m_idx = h_dim * (t_idx // b_h)
-        tile_imgs[n_idx:(n_idx+h_dim), m_idx:(m_idx+w_dim), :] = imgs[t_idx]
+    # count number of rows
+    num_rows = inputs.shape[0]
 
-    return tile_imgs
+    # make a figure to hold multiple plots
+    fig, axs = plt.subplots(num_rows, 2, figsize=(8, 20))
+
+    for i in range(inputs.shape[0]):
+
+        # save current image to file
+        img = inputs[i, :, :, 0]
+
+        #axs[i, 0].axis('off')
+        #axs[i, 1].axis('off')
+
+        # add image trace
+        axs[i, 0].imshow(img)
+        axs[i, 0].set_title('Target: {}, Prediction: {}'.format(labels[i], output_preds[i]))
+        axs[i, 0].axis('off')
+
+        axs[i, 1].bar(x=range(len(output_probs[i])), height=output_probs[i])
+        axs[i, 1].set_title('Prediction Probabilities')
+        axs[i, 1].set_xticks(range(len(output_probs[i])))
+
+    fig.tight_layout()
+
+    return fig
