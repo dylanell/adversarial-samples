@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-def inputs_with_outputs(inputs, labels, output_probs, output_preds):
+def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 10)):
 
     # remap inputs to [0 - 255] and convetr to uint 8
     new_min, new_max = 0, 255
@@ -18,7 +18,7 @@ def inputs_with_outputs(inputs, labels, output_probs, output_preds):
     num_rows = inputs.shape[0]
 
     # make a figure to hold multiple plots
-    fig, axs = plt.subplots(num_rows, 2, figsize=(8, 20))
+    fig, axs = plt.subplots(num_rows, 2, figsize=figsize)
 
     for i in range(inputs.shape[0]):
 
@@ -36,6 +36,7 @@ def inputs_with_outputs(inputs, labels, output_probs, output_preds):
         axs[i, 1].bar(x=range(len(output_probs[i])), height=output_probs[i])
         axs[i, 1].set_title('Prediction Probabilities')
         axs[i, 1].set_xticks(range(len(output_probs[i])))
+        axs[i, 1].grid('major')
 
     fig.tight_layout()
 
