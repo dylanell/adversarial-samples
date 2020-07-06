@@ -25,7 +25,7 @@ def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_da
     # define the transform chain to preprocess each sample as it is passed to a batch
     #   1. resize the sample (image) to 32x32 (h, w)
     #   2. convert resized sample to Pytorch tensor
-    #   3. normalize sample values (pixel values) using mean 0.5 and stdev 0,5; [0, 255] -> [0, 1]
+    #   3. normalize sample values (pixel values) using mean 0.5 and stdev 0,5; [0, 255] -> [-1, 1]
     transform = transforms.Compose(
         [
             transforms.Resize((32, 32)),
