@@ -4,7 +4,33 @@ General data handling utilities.
 
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+import torch
+
+def compute_pytorch_model_accuracy(model, data_loader):
+    # counters for total number of samples in the dataloader and correct predictions
+    total = 0
+    correct = 0
+
+    # iterate through batches
+    for batch in data_loader:
+
+        # parse batch and send to device
+        sample_batch = batch[0]
+        label_batch = batch[1]
+
+        # get predicted outputs
+        pred = torch.argmax(model(sample_batch), dim=1)
+
+        # count where predicted == labels and add to correct count
+        correct += torch.sum((pred == label_batch)).item()
+
+        # add this batch size to total count
+        total += sample_batch.shape[0]
+
+    # compute accuracy on dataloader
+    accuracy = 100.0 * (float(correct) / float(total))
+
+    return accuracy
 
 def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 10)):
 
@@ -37,6 +63,7 @@ def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 
         axs[i, 1].set_title('Prediction Probabilities')
         axs[i, 1].set_xticks(range(len(output_probs[i])))
         axs[i, 1].grid('major')
+        axs[i, 1].set_ylim(0., 1.1)
 
     fig.tight_layout()
 

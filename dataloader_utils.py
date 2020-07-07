@@ -6,9 +6,33 @@ import torch
 import torchvision
 from torchvision.transforms import transforms
 
+class raw_pytorch_dataset(torch.utils.data.Dataset):
+    """
+    Description: Make a Pytorch dataloader from the provided samples and labels.
+    """
+
+    def __init__(self, samples, labels, transform=None):
+        self.samples = samples
+        self.labels = labels
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        # get sample and label by idx
+        pack = {0: self.samples[idx], 1: self.labels[idx]}
+
+        # add transform
+        if self.transform:
+            pack = self.transform(pack)
+
+        return pack
+
+
 def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_data/'):
     """
-    Description: Make a pytorch dataloader for the MNIST training and testing sets that includes
+    Description: Make a Pytorch dataloader for the MNIST training and testing sets that includes
         preprocessing transforms and batching.
     Args:
         - batch_size (int): size of each batch returned by the dataloader iterable object.
