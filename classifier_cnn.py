@@ -1,5 +1,5 @@
 """
-Wasserstein GAN class.
+CNN Classifier class.
 """
 
 import torch
