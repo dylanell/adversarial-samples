@@ -1,12 +1,14 @@
 """
-Train a Wasserstein GAN on the MNIST dataset.
+Generate adversarial MNIST datasets using dataloaders and a pretrained classifier.
 """
 
 import argparse
+import numpy as np
 
 # relative imports
-from suppressed_classifier import SuppressedClassifierCNN
+from classifier_cnn import ClassifierCNN
 from dataloader_utils import make_mnist_dataloaders
+from data_utils import make_adversarial_datasets
 
 def main():
     parser = argparse.ArgumentParser()
@@ -18,15 +20,15 @@ def main():
     parser.add_argument('--ntest', type=int, default=10000, help='number of testing samples')
     parser.add_argument('--nclass', type=int, default=10, help='number of classes')
     parser.add_argument('--nchan', type=int, default=1, help='sample channel dimension')
-    parser.add_argument('--name', type=str, default='suppressed_classifier', help='model name')
+    parser.add_argument('--name', type=str, default='classifier', help='model name')
     parser.add_argument('--v', type=bool, default=False, help='verbose flag')
     parser.add_argument('--ld', type=str, default='/tmp/', help='log and other output directory')
     parser.add_argument('--dd', type=str, default='/tmp/mnist_data/', help='mnist data directory')
     parser.add_argument('--mf', type=str, default='/tmp/classifier_net.pt', help='mnist data directory')
     args = parser.parse_args()
 
-    # initialize gan model
-    classifier = SuppressedClassifierCNN(args)
+    # initialize model
+    classifier = ClassifierCNN(args)
 
     # intialize MNIST dataloaders
     train_loader, test_loader = make_mnist_dataloaders(
@@ -35,8 +37,21 @@ def main():
         data_dir=args.dd
     )
 
-    # train classifier on training set
-    classifier.train(train_loader, test_loader, args.ne)
+    # create a bunch of adversarial datasets from MNIST rraining data for a range of epsilon
+    # strengths
+    adv_train_datasets, labels = make_adversarial_datasets(
+        classifier.net,
+        train_loader,
+        np.arange(0., 0.5, 0.02)
+    )
+
+    # create a bunch of adversarial datasets from MNIST testing data for a range of epsilon
+    # strengths
+    adv_test_datasets, labels = make_adversarial_datasets(
+        classifier.net,
+        test_loader,
+        np.arange(0., 0.5, 0.02)
+    )
 
 if __name__ == '__main__':
     main()

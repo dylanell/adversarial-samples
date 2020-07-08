@@ -31,6 +31,16 @@ class SuppressedClassifierCNN():
             out_act=torch.nn.LeakyReLU()
         )
 
+        # try to load pre-trained parameters
+        try:
+            self.net.load_state_dict(
+                torch.load(self.conf.mf, map_location=torch.device('cpu'))
+            )
+
+            logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
+        except:
+            logging.info('Failed to load model parameters; initializing from scratch')
+
         # define loss function
         self.loss_fn = torch.nn.CrossEntropyLoss()
 
@@ -62,7 +72,7 @@ class SuppressedClassifierCNN():
             label_batch = batch[1].to(self.device)
 
             # get predicted outputs
-            pred = torch.argmax(self.net(sample_batch)[0], dim=1)
+            pred = torch.argmax(self.net(sample_batch), dim=1)
 
             # count where predicted == labels and add to correct count
             correct += torch.sum((pred == label_batch)).item()
@@ -90,7 +100,7 @@ class SuppressedClassifierCNN():
                 label_batch = batch[1].to(self.device)
 
                 # compute output logits from sample batch
-                logits, _ = self.net(sample_batch)
+                logits = self.net(sample_batch)
 
                 # compute loss between logits and targets
                 cross_entropy_loss = self.loss_fn(logits, label_batch)
@@ -99,16 +109,19 @@ class SuppressedClassifierCNN():
                 rand_sample_batch = self.img_dist.sample().to(self.device)
 
                 # compute all hidden activations from random image batch
-                rand_out, rand_act = self.net(rand_sample_batch)
+                rand_act = self.net.activations(rand_sample_batch)
 
                 # compute mse between activations and zero vectors
-                #mse_losses = [
-                #    torch.nn.functional.mse_loss(a, torch.zeros_like(a)) for a in rand_act
-                #]
+                mse_losses = torch.tensor([
+                    torch.nn.functional.mse_loss(a, torch.zeros_like(a)) for a in rand_act
+                ], requires_grad=True)
 
                 # compute activation loss
-                #activation_loss = torch.sum(mse_losses)
-                activation_loss = torch.nn.functional.mse_loss(rand_out, torch.zeros_like(rand_out))
+                activation_loss = torch.sum(mse_losses)
+                #activation_loss = torch.nn.functional.mse_loss(
+                #    rand_act[-1],
+                #    torch.zeros_like(rand_act[-1])
+                #)
 
                 # add activation loss to total loss
                 loss = cross_entropy_loss + (1. * activation_loss)

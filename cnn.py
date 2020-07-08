@@ -30,14 +30,31 @@ class CNN(torch.nn.Module):
         # define fully connected output layer
         self.fc_1 = torch.nn.Linear(512*2*2, out_dim)
 
-    # define network layer connections and forward propagate input x through
-    # the network and return output
+    # forward propagate input x through the network and return output
     def forward(self, x):
-        z_1 = self.norm_1(torch.nn.functional.leaky_relu(self.conv_1(x)))
-        z_2 = self.norm_2(torch.nn.functional.leaky_relu(self.conv_2(z_1)))
-        z_3 = self.norm_3(torch.nn.functional.leaky_relu(self.conv_3(z_2)))
-        z_4 = self.norm_4(torch.nn.functional.leaky_relu(self.conv_4(z_3)))
-        z_5 = self.norm_5(torch.nn.functional.leaky_relu(self.conv_5(z_4)))
+        z_1 = torch.nn.functional.leaky_relu(self.conv_1(x))
+        z_2 = torch.nn.functional.leaky_relu(self.conv_2(z_1))
+        z_3 = torch.nn.functional.leaky_relu(self.conv_3(z_2))
+        z_4 = torch.nn.functional.leaky_relu(self.conv_4(z_3))
+        z_5 = torch.nn.functional.leaky_relu(self.conv_5(z_4))
+        z_5_flat = torch.flatten(z_5, start_dim=1)
+        z_6 = self.fc_1(z_5_flat)
+
+        # add final activation
+        if self.out_act is not None:
+            z_out = self.out_act(z_6)
+        else:
+            z_out = z_6
+
+        return z_out
+
+    # forward propagate x through network and return all layer activations
+    def activations(self, x):
+        z_1 = torch.nn.functional.leaky_relu(self.conv_1(x))
+        z_2 = torch.nn.functional.leaky_relu(self.conv_2(z_1))
+        z_3 = torch.nn.functional.leaky_relu(self.conv_3(z_2))
+        z_4 = torch.nn.functional.leaky_relu(self.conv_4(z_3))
+        z_5 = torch.nn.functional.leaky_relu(self.conv_5(z_4))
         z_5_flat = torch.flatten(z_5, start_dim=1)
         z_6 = self.fc_1(z_5_flat)
 
@@ -49,4 +66,4 @@ class CNN(torch.nn.Module):
 
         all_activations = [z_1, z_2, z_3, z_4, z_5, z_out]
 
-        return z_out, all_activations
+        return all_activations

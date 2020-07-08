@@ -6,6 +6,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
+def make_adversarial_datasets(classifier, dataloader, eps_vals):
+    # dictionary to hold adversarial datasets
+    adv_datasets = {eps: [] for eps in eps_vals}
+
+    # list to hold labels
+    labels = []
+
+    # run through all batches of the test loader
+    for batch in dataloader:
+        # parse batch
+        batch_samples = batch[0]
+        batch_labels = batch[1]
+
+        # append labels
+        labels.append(batch_labels.detach().numpy())
+
+        # require gradient for input data (need to do this to compute the gradients for inputs dutring backward() call)
+        batch_samples.requires_grad = True
+
+        # compute model outputs
+        outputs = classifier(batch_samples)
+
+        # compute loss on current test batch
+        loss = torch.nn.functional.cross_entropy(outputs, batch_labels)
+
+        # compute gradients of loss on backward pass
+        loss.backward()
+
+        # get gradients of input data
+        grads = batch_samples.grad
+
+        # get sign of gradients
+        signed_grads = torch.sign(grads)
+
+        # range of adversarial perturbution strengths
+        for eps in eps_vals:
+
+            # perturb test samples using FGSM
+            adv_batch_samples = batch_samples + ((eps) * signed_grads)
+
+            # keep pixel vals within [-1, 1]
+            new_min, new_max = -1., 1.
+            old_min, old_max = torch.min(adv_batch_samples), torch.max(adv_batch_samples)
+            adv_batch_samples = (((adv_batch_samples - old_min) / (old_max - old_min)) * (new_max - new_min)) + new_min
+
+            # append these adversarial examples to the dictionary
+            adv_datasets[eps].append(adv_batch_samples.detach().numpy())
+
+    # concatenate all lists in dataset dictionary to numpy arrays
+    adv_datasets = dict(map(lambda x: (x[0], np.concatenate(x[1], axis=0)), adv_datasets.items()))
+
+    # concatenate labels to numpy array
+    labels = np.concatenate(labels, axis=0)
+
+    return adv_datasets, labels
+
 def compute_pytorch_model_accuracy(model, data_loader):
     # counters for total number of samples in the dataloader and correct predictions
     total = 0
@@ -50,9 +106,6 @@ def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 
 
         # save current image to file
         img = inputs[i, :, :, 0]
-
-        #axs[i, 0].axis('off')
-        #axs[i, 1].axis('off')
 
         # add image trace
         axs[i, 0].imshow(img)
