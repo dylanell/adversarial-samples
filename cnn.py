@@ -33,11 +33,11 @@ class CNN(torch.nn.Module):
     # define network layer connections and forward propagate input x through
     # the network and return output
     def forward(self, x):
-        z_1 = self.norm_1(torch.relu(self.conv_1(x)))
-        z_2 = self.norm_2(torch.relu(self.conv_2(z_1)))
-        z_3 = self.norm_3(torch.relu(self.conv_3(z_2)))
-        z_4 = self.norm_4(torch.relu(self.conv_4(z_3)))
-        z_5 = self.norm_5(torch.relu(self.conv_5(z_4)))
+        z_1 = self.norm_1(torch.nn.functional.leaky_relu(self.conv_1(x)))
+        z_2 = self.norm_2(torch.nn.functional.leaky_relu(self.conv_2(z_1)))
+        z_3 = self.norm_3(torch.nn.functional.leaky_relu(self.conv_3(z_2)))
+        z_4 = self.norm_4(torch.nn.functional.leaky_relu(self.conv_4(z_3)))
+        z_5 = self.norm_5(torch.nn.functional.leaky_relu(self.conv_5(z_4)))
         z_5_flat = torch.flatten(z_5, start_dim=1)
         z_6 = self.fc_1(z_5_flat)
 
@@ -47,4 +47,6 @@ class CNN(torch.nn.Module):
         else:
             z_out = z_6
 
-        return z_out
+        all_activations = [z_1, z_2, z_3, z_4, z_5, z_out]
+
+        return z_out, all_activations
