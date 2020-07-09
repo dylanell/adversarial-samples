@@ -124,6 +124,6 @@ class ClassifierCNN():
                 ' validation accuracy: {:6.2f} |'.format(e+1, epoch_avg_loss, accuracy))
 
             # save current state of network
-            torch.save(self.net.state_dict(), '{}{}_net.pt'.format(self.conf.ld, self.conf.name))
+            torch.save(self.net.state_dict(), '{}{}.pt'.format(self.conf.ld, self.conf.name))
 
         # done with all epochs
