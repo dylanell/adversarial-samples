@@ -34,12 +34,12 @@ class ClassifierCNN():
         # try to load pre-trained parameters
         try:
             self.net.load_state_dict(
-                torch.load(self.conf.mf, map_location=torch.device('cpu'))
+                torch.load(self.conf.mf, map_location=self.device)
             )
 
             logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
         except:
-            logging.info('Failed to load model parameters; initializing from scratch')
+            logging.info('Failed to load model parameters from \'{}\''.format(self.conf.mf))
 
         # define loss function
         self.loss_fn = torch.nn.CrossEntropyLoss()

@@ -18,11 +18,11 @@ def main():
     parser.add_argument('--ntest', type=int, default=10000, help='number of testing samples')
     parser.add_argument('--nclass', type=int, default=10, help='number of classes')
     parser.add_argument('--nchan', type=int, default=1, help='sample channel dimension')
-    parser.add_argument('--name', type=str, default='suppressed_classifier', help='model name')
+    parser.add_argument('--name', type=str, default='supp_classifier', help='model name')
     parser.add_argument('--v', type=bool, default=False, help='verbose flag')
     parser.add_argument('--ld', type=str, default='/tmp/', help='log and other output directory')
     parser.add_argument('--dd', type=str, default='/tmp/mnist_data/', help='mnist data directory')
-    parser.add_argument('--mf', type=str, default='/tmp/classifier_net.pt', help='mnist data directory')
+    parser.add_argument('--mf', type=str, default='/tmp/supp_classifier.pt', help='mnist data directory')
     args = parser.parse_args()
 
     # initialize gan model

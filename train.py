@@ -22,7 +22,7 @@ def main():
     parser.add_argument('--v', type=bool, default=False, help='verbose flag')
     parser.add_argument('--ld', type=str, default='/tmp/', help='log and other output directory')
     parser.add_argument('--dd', type=str, default='/tmp/mnist_data/', help='mnist data directory')
-    parser.add_argument('--mf', type=str, default='/tmp/classifier_net.pt', help='mnist data directory')
+    parser.add_argument('--mf', type=str, default='/tmp/classifier.pt', help='mnist data directory')
     args = parser.parse_args()
 
     # initialize gan model

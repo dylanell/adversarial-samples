@@ -39,7 +39,7 @@ class SuppressedClassifierCNN():
 
             logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
         except:
-            logging.info('Failed to load model parameters; initializing from scratch')
+            logging.info('Failed to load model parameters from \'{}\''.format(self.conf.mf))
 
         # define loss function
         self.loss_fn = torch.nn.CrossEntropyLoss()
