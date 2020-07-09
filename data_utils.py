@@ -88,7 +88,7 @@ def compute_pytorch_model_accuracy(model, data_loader):
 
     return accuracy
 
-def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 10)):
+def graph_inputs_with_predictions(inputs, labels, output_probs, output_preds, figsize=(8, 10)):
 
     # remap inputs to [0 - 255] and convetr to uint 8
     new_min, new_max = 0, 255
@@ -117,6 +117,8 @@ def inputs_with_outputs(inputs, labels, output_probs, output_preds, figsize=(8, 
         axs[i, 1].set_xticks(range(len(output_probs[i])))
         axs[i, 1].grid('major')
         axs[i, 1].set_ylim(0., 1.1)
+        axs[i, 1].set_xlabel('Class')
+        axs[i, 1].set_ylabel('Probability')
 
     fig.tight_layout()
 
