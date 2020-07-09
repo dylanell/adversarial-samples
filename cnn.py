@@ -21,11 +21,11 @@ class CNN(torch.nn.Module):
         self.conv_5 = torch.nn.Conv2d(256, 512, 3, stride=2, padding=1)
 
         # define layer norm layers
-        self.norm_1 = torch.nn.LayerNorm([32, 32, 32])
-        self.norm_2 = torch.nn.LayerNorm([64, 16, 16])
-        self.norm_3 = torch.nn.LayerNorm([128, 8, 8])
-        self.norm_4 = torch.nn.LayerNorm([256, 4, 4])
-        self.norm_5 = torch.nn.LayerNorm([512, 2, 2])
+        #self.norm_1 = torch.nn.LayerNorm([32, 32, 32])
+        #self.norm_2 = torch.nn.LayerNorm([64, 16, 16])
+        #self.norm_3 = torch.nn.LayerNorm([128, 8, 8])
+        #self.norm_4 = torch.nn.LayerNorm([256, 4, 4])
+        #self.norm_5 = torch.nn.LayerNorm([512, 2, 2])
 
         # define fully connected output layer
         self.fc_1 = torch.nn.Linear(512*2*2, out_dim)

@@ -34,7 +34,7 @@ class SuppressedClassifierCNN():
         # try to load pre-trained parameters
         try:
             self.net.load_state_dict(
-                torch.load(self.conf.mf, map_location=torch.device('cpu'))
+                torch.load(self.conf.mf, map_location=self.device)
             )
 
             logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
@@ -112,19 +112,19 @@ class SuppressedClassifierCNN():
                 rand_act = self.net.activations(rand_sample_batch)
 
                 # compute mse between activations and zero vectors
-                mse_losses = torch.tensor([
+                mse_losses = [
                     torch.nn.functional.mse_loss(a, torch.zeros_like(a)) for a in rand_act
-                ], requires_grad=True)
+                ]
 
                 # compute activation loss
-                activation_loss = torch.sum(mse_losses)
-                #activation_loss = torch.nn.functional.mse_loss(
-                #    rand_act[-1],
-                #    torch.zeros_like(rand_act[-1])
-                #)
+                activation_loss = torch.tensor(0.).to(self.device)
+                for l in mse_losses:
+                    activation_loss += l
 
                 # add activation loss to total loss
                 loss = cross_entropy_loss + (1. * activation_loss)
+                #loss = activation_loss
+                #loss = cross_entropy_loss
 
                 # zero out gradients
                 self.opt.zero_grad()
