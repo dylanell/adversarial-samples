@@ -18,7 +18,7 @@ class SuppressedClassifierCNN():
 
         # initialize logging to create new log file and log any level event
         logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', \
-            filename='{}{}.log'.format(self.conf.ld, self.conf.name), filemode='w', \
+            filename='{}{}.log'.format(self.conf.ld, self.conf.name), filemode='a', \
             level=logging.DEBUG)
 
         # try to get gpu device, if not just use cpu
@@ -34,12 +34,16 @@ class SuppressedClassifierCNN():
         # try to load pre-trained parameters
         try:
             self.net.load_state_dict(
-                torch.load(self.conf.mf, map_location=self.device)
+                torch.load(self.conf.ld+self.conf.name+'.pt', map_location=self.device)
             )
 
-            logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
+            #logging.info('Successfully loaded model parameters from \'{}\''.format(self.conf.mf))
+            print('Successfully loaded model parameters from \'{}\'' \
+                .format(self.conf.ld+self.conf.name+'.pt'))
         except:
-            logging.info('Failed to load model parameters from \'{}\''.format(self.conf.mf))
+            #logging.info('Failed to load model parameters from \'{}\''.format(self.conf.mf))
+            print('Failed to load model parameters from \'{}\'' \
+                .format(self.conf.ld+self.conf.name+'.pt'))
 
         # define loss function
         self.loss_fn = torch.nn.CrossEntropyLoss()
