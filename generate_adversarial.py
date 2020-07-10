@@ -4,11 +4,12 @@ Generate adversarial MNIST datasets using dataloaders and a pretrained classifie
 
 import argparse
 import numpy as np
+import pickle
 
 # relative imports
 from classifier_cnn import ClassifierCNN
 from dataloader_utils import make_mnist_dataloaders
-from data_utils import make_adversarial_datasets
+from data_utils import make_adversarial_dataset
 
 def main():
     parser = argparse.ArgumentParser()
@@ -24,7 +25,7 @@ def main():
     parser.add_argument('--v', type=bool, default=False, help='verbose flag')
     parser.add_argument('--ld', type=str, default='/tmp/', help='log and other output directory')
     parser.add_argument('--dd', type=str, default='/tmp/mnist_data/', help='mnist data directory')
-    parser.add_argument('--mf', type=str, default='/tmp/classifier.pt', help='mnist data directory')
+    parser.add_argument('--od', type=str, default='/tmp/', help='output data directory')
     args = parser.parse_args()
 
     # initialize model
@@ -34,23 +35,26 @@ def main():
     train_loader, test_loader = make_mnist_dataloaders(
         batch_size=args.bs,
         num_workers=args.nw,
-        data_dir=args.dd
+        data_dir=args.dd,
+        shuffle=False
     )
 
     # create a bunch of adversarial datasets from MNIST rraining data for a range of epsilon
     # strengths
-    adv_train_datasets, labels = make_adversarial_datasets(
+    make_adversarial_dataset(
         classifier.net,
         train_loader,
-        np.arange(0., 0.5, 0.02)
+        0.3,
+        out_dir=args.od + 'train/'
     )
 
     # create a bunch of adversarial datasets from MNIST testing data for a range of epsilon
     # strengths
-    adv_test_datasets, labels = make_adversarial_datasets(
+    make_adversarial_dataset(
         classifier.net,
         test_loader,
-        np.arange(0., 0.5, 0.02)
+        0.3,
+        out_dir=args.od + 'test/'
     )
 
 if __name__ == '__main__':
