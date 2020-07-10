@@ -30,7 +30,7 @@ class raw_pytorch_dataset(torch.utils.data.Dataset):
         return pack
 
 
-def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_data/'):
+def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_data/', shuffle=True):
     """
     Description: Make a Pytorch dataloader for the MNIST training and testing sets that includes
         preprocessing transforms and batching.
@@ -78,7 +78,7 @@ def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_da
     train_loader = torch.utils.data.DataLoader(
         train_set,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers
     )
 
@@ -86,7 +86,7 @@ def make_mnist_dataloaders(batch_size=16, num_workers=1, data_dir='/tmp/mnist_da
     test_loader = torch.utils.data.DataLoader(
         test_set,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers
     )
 
