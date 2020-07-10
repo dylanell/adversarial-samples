@@ -6,21 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
-def make_adversarial_datasets(classifier, dataloader, eps_vals):
-    # dictionary to hold adversarial datasets
-    adv_datasets = {eps: [] for eps in eps_vals}
-
-    # list to hold labels
-    labels = []
-
+def make_adversarial_dataset(classifier, dataloader, eps, out_dir=None):
     # run through all batches of the test loader
     for batch in dataloader:
         # parse batch
         batch_samples = batch[0]
         batch_labels = batch[1]
-
-        # append labels
-        labels.append(batch_labels.detach().numpy())
 
         # require gradient for input data (need to do this to compute the gradients for inputs dutring backward() call)
         batch_samples.requires_grad = True
@@ -40,27 +31,31 @@ def make_adversarial_datasets(classifier, dataloader, eps_vals):
         # get sign of gradients
         signed_grads = torch.sign(grads)
 
-        # range of adversarial perturbution strengths
-        for eps in eps_vals:
+        # perturb test samples using FGSM
+        adv_batch_samples = batch_samples + ((eps) * signed_grads)
 
-            # perturb test samples using FGSM
-            adv_batch_samples = batch_samples + ((eps) * signed_grads)
+        # keep pixel vals within [-1, 1]
+        new_min, new_max = -1., 1.
+        old_min, old_max = torch.min(adv_batch_samples), torch.max(adv_batch_samples)
+        adv_batch_samples = (((adv_batch_samples - old_min) / (old_max - old_min)) * (new_max - new_min)) + new_min
 
-            # keep pixel vals within [-1, 1]
-            new_min, new_max = -1., 1.
-            old_min, old_max = torch.min(adv_batch_samples), torch.max(adv_batch_samples)
-            adv_batch_samples = (((adv_batch_samples - old_min) / (old_max - old_min)) * (new_max - new_min)) + new_min
+        # detach and convert samples to numpy
+        adv_batch_samples = np.reshape(
+            adv_batch_samples.detach().numpy(),
+            [adv_batch_samples.shape[0], -1]
+        )
 
-            # append these adversarial examples to the dictionary
-            adv_datasets[eps].append(adv_batch_samples.detach().numpy())
+        # detach and convert labels to numpy
+        batch_labels = batch_labels.detach().numpy()
 
-    # concatenate all lists in dataset dictionary to numpy arrays
-    adv_datasets = dict(map(lambda x: (x[0], np.concatenate(x[1], axis=0)), adv_datasets.items()))
+        # append current batch samples to samples file
+        with open(out_dir+'samples.csv'.format(eps), 'ab+') as fp:
+            np.savetxt(fp, adv_batch_samples)
 
-    # concatenate labels to numpy array
-    labels = np.concatenate(labels, axis=0)
+        # append current batch labels to labels file
+        with open(out_dir+'labels.csv', 'ab+') as fp:
+            np.savetxt(fp, batch_labels)
 
-    return adv_datasets, labels
 
 def compute_pytorch_model_accuracy(model, data_loader):
     # counters for total number of samples in the dataloader and correct predictions
