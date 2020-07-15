@@ -63,8 +63,9 @@ class AdversarialClassifier():
         # initialize optimizer
         self.opt = torch.optim.Adam(self.net.parameters(), lr=self.conf.lr)
 
-        # move network to device
+        # move networks to device
         self.net.to(self.device)
+        self.guide_net.to(self.device)
 
     def print_structure(self):
         print('[INFO] \'{}\' network structure \n{}'.format(self.conf.name, self.net))
