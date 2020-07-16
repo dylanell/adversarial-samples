@@ -3,10 +3,7 @@ CNN Classifier class.
 """
 
 import torch
-from tqdm import tqdm
 import logging
-import numpy as np
-import matplotlib.pyplot as plt
 
 # relative imports
 from cnn import CNN

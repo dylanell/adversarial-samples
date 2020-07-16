@@ -3,10 +3,7 @@ CNN Classifier class.
 """
 
 import torch
-from tqdm import tqdm
 import logging
-import numpy as np
-import matplotlib.pyplot as plt
 
 # relative imports
 from cnn import CNN
@@ -125,7 +122,7 @@ class MixedClassifier():
                         torch.cat([label_batch.view(bs, 1), anotha_label_batch.view(bs, 1)], dim=-1)
                     super_labels = \
                         torch.diagonal(torch.matmul(both_labels.float(), idx.T.float())).long()
-                        
+
                 else:
                     continue
 

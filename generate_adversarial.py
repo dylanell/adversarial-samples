@@ -4,12 +4,60 @@ Generate adversarial MNIST datasets using dataloaders and a pretrained classifie
 
 import argparse
 import numpy as np
-import pickle
 
 # relative imports
-from classifier_cnn import ClassifierCNN
+from classifier_cnn import Classifier
 from dataloader_utils import make_mnist_dataloaders
-from data_utils import make_adversarial_dataset
+
+def make_adversarial_dataset(classifier, dataloader, eps, out_dir=None):
+    # run through all batches of the test loader
+    for batch in dataloader:
+        # parse batch
+        batch_samples = batch[0]
+        batch_labels = batch[1]
+
+        # require gradient for input data (need to do this to compute the gradients for inputs dutring backward() call)
+        batch_samples.requires_grad = True
+
+        # compute model outputs
+        outputs = classifier(batch_samples)
+
+        # compute loss on current test batch
+        loss = torch.nn.functional.cross_entropy(outputs, batch_labels)
+
+        # compute gradients of loss on backward pass
+        loss.backward()
+
+        # get gradients of input data
+        grads = batch_samples.grad
+
+        # get sign of gradients
+        signed_grads = torch.sign(grads)
+
+        # perturb test samples using FGSM
+        adv_batch_samples = batch_samples + ((eps) * signed_grads)
+
+        # keep pixel vals within [-1, 1]
+        new_min, new_max = -1., 1.
+        old_min, old_max = torch.min(adv_batch_samples), torch.max(adv_batch_samples)
+        adv_batch_samples = (((adv_batch_samples - old_min) / (old_max - old_min)) * (new_max - new_min)) + new_min
+
+        # detach and convert samples to numpy
+        adv_batch_samples = np.reshape(
+            adv_batch_samples.detach().numpy(),
+            [adv_batch_samples.shape[0], -1]
+        )
+
+        # detach and convert labels to numpy
+        batch_labels = batch_labels.detach().numpy()
+
+        # append current batch samples to samples file
+        with open(out_dir+'samples.csv'.format(eps), 'ab+') as fp:
+            np.savetxt(fp, adv_batch_samples)
+
+        # append current batch labels to labels file
+        with open(out_dir+'labels.csv', 'ab+') as fp:
+            np.savetxt(fp, batch_labels)
 
 def main():
     parser = argparse.ArgumentParser()

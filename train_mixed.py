@@ -1,5 +1,5 @@
 """
-Train a Wasserstein GAN on the MNIST dataset.
+Train a classifier with training data augmented by superimposing other training data (mixed data).
 """
 
 import argparse
@@ -34,7 +34,6 @@ def main():
         num_workers=args.nw,
         data_dir=args.dd
     )
-
     # train classifier on training set
     classifier.train(train_loader, test_loader, args.ne)
 

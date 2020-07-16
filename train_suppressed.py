@@ -1,5 +1,5 @@
 """
-Train a Wasserstein GAN on the MNIST dataset.
+Train a classifier with a regularizer that pushes activation to zero at all network layers.
 """
 
 import argparse

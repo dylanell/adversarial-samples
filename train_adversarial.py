@@ -1,5 +1,5 @@
 """
-Train a Wasserstein GAN on the MNIST dataset.
+Train a classifier with advserarially augmented trainign data.
 """
 
 import argparse

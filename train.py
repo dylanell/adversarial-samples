@@ -1,11 +1,11 @@
 """
-Train a Wasserstein GAN on the MNIST dataset.
+Train a classifier.
 """
 
 import argparse
 
 # relative imports
-from classifier_cnn import ClassifierCNN
+from classifier_cnn import Classifier
 from dataloader_utils import make_mnist_dataloaders
 
 def main():
