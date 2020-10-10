@@ -133,6 +133,10 @@ def main():
         # compute epoch time
         epoch_time = time.time() - epoch_start
 
+        # save model
+        torch.save(model.state_dict(),'{}{}.pt'.format(
+            config['output_directory'], config['model_name']))
+
         # print epoch metrics
         template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, Train Loss: {:.2f},'\
             ' Train Accuracy: {:.2f}, Test Loss: {:.2f}, Test Accuracy: {:.2f}'
