@@ -1,4 +1,4 @@
-dataset_directory: '/home/dylan/datasets/mnist_png/'
+dataset_directory: '/home/dylan/datasets/cifar_png/'
 output_directory: '/tmp'
 model_name: 'classifier'
 number_epochs: 20
@@ -6,6 +6,6 @@ batch_size: 32
 input_dimensions: !!python/tuple
 - 32
 - 32
-- 1
+- 3
 learning_rate: 0.001
 number_workers: 1

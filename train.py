@@ -1,6 +1,6 @@
-"""
+'''
 Script to train a CNN classifier with PyTorch.
-"""
+'''
 
 import time
 import yaml
