@@ -10,32 +10,31 @@ import torch.nn.functional as F
 
 from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
-from model.classifier import Classifier
+from module.classifier import Classifier
+
+from model.vanilla_classifier import VanillaClassifier
 
 def main():
     # parse configuration file
     with open('config.yaml', 'r') as fp:
         config = yaml.load(fp, Loader=yaml.FullLoader)
 
-    # training device - try to find a gpu, if not just use cpu
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-    print('[INFO]: using \'{}\' device'.format(device))
-
     # generate filenames/labels df from image data directory
     data_dict = generate_df_from_image_dataset(config['dataset_directory'])
 
-    # get number of classes in labels
-    num_class = data_dict['train']['Label'].nunique()
+    # add number of classes in labels to config
+    config['output_dimension'] = \
+        data_dict['train']['Label'].nunique()
 
-    # get number of samples
-    num_train = len(data_dict['train'])
+    # add number of samples to config
+    config['number_train'] = len(data_dict['train'])
+    config['number_test'] = len(data_dict['test'])
 
     # if training as adversarial, use the first 20000 training samples, # otherwise use the last 20000 training samples
     if config['adversary']:
-        train_df = data_dict['train'].iloc[:int(num_train/2), :]
+        train_df = data_dict['train'].iloc[:int(config['number_train']/2), :]
     else:
-        train_df = data_dict['train'].iloc[int(num_train/2):, :]
+        train_df = data_dict['train'].iloc[int(config['number_train']/2):, :]
 
     # build training dataloader
     train_set, train_loader = build_image_dataset(
@@ -54,103 +53,10 @@ def main():
     )
 
     # initialize the model
-    model = Classifier(config['input_dimensions'], num_class)
+    model = VanillaClassifier(config)
 
-    # define cross entropy loss (requires logits as outputs)
-    loss_fn = torch.nn.CrossEntropyLoss()
-
-    # initialize an optimizer
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=config['learning_rate']
-    )
-
-    # move the model to the training device
-    model.to(device)
-
-    print('[INFO]: training...')
-
-    # train through all epochs
-    for e in range(config['number_epochs']):
-        # get epoch start time
-        epoch_start = time.time()
-
-        # reset accumulators
-        train_epoch_loss = 0.0
-        train_num_correct = 0
-        test_epoch_loss = 0.0
-        test_num_correct = 0
-
-        # run through epoch of train data
-        for i, batch in enumerate(train_loader):
-            # parse batch and move to training device
-            input_batch = batch['image'].to(device)
-            label_batch = batch['label'].to(device)
-
-            # compute output batch logits and predictions
-            logits_batch = model(input_batch)
-            pred_batch = torch.argmax(logits_batch, dim=1)
-
-            # compute loss
-            loss = loss_fn(logits_batch, label_batch)
-
-            # zero out gradient attributes for all trainabe params
-            optimizer.zero_grad()
-
-            # compute gradients w.r.t loss (repopulate gradient attribute
-            # for all trainable params)
-            loss.backward()
-
-            # update params with current gradients
-            optimizer.step()
-
-            # accumulate loss
-            train_epoch_loss += loss.item()
-
-            # accumulate number correct
-            train_num_correct += torch.sum(
-                (pred_batch == label_batch)
-            ).item()
-
-        # run through epoch of test data
-        for i, batch in enumerate(test_loader):
-            # parse batch and move to training device
-            input_batch = batch['image'].to(device)
-            label_batch = batch['label'].to(device)
-
-            # compute output batch logits and predictions
-            logits_batch = model(input_batch)
-            pred_batch = torch.argmax(logits_batch, dim=1)
-
-            # compute loss
-            loss = loss_fn(logits_batch, label_batch)
-
-            # accumulate loss
-            test_epoch_loss += loss.item()
-
-            # accumulate number correct
-            test_num_correct += torch.sum(
-                (pred_batch == label_batch)
-            ).item()
-
-        # compute epoch average loss and accuracy metrics
-        train_loss = train_epoch_loss / i
-        train_acc = 100.0 * train_num_correct / train_set.__len__()
-        test_loss = test_epoch_loss / i
-        test_acc = 100.0 * test_num_correct / test_set.__len__()
-
-        # compute epoch time
-        epoch_time = time.time() - epoch_start
-
-        # save model
-        torch.save(model.state_dict(),'{}{}.pt'.format(
-            config['output_directory'], config['model_name']))
-
-        # print epoch metrics
-        template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, Train Loss: {:.2f},'\
-            ' Train Accuracy: {:.2f}, Test Loss: {:.2f}, Test Accuracy: {:.2f}'
-        print(template.format(e+1, epoch_time, train_loss,
-            train_acc, test_loss, test_acc))
+    # train the model
+    model.train_epochs(train_loader, test_loader)
 
 if __name__ == '__main__':
     main()
