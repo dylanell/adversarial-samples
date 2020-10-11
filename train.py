@@ -25,7 +25,8 @@ def main():
     config['number_train'] = len(data_dict['train'])
     config['number_test'] = len(data_dict['test'])
 
-    # if training as adversarial, use the first 20000 training samples, # otherwise use the last 20000 training samples
+    # if training as adversarial, use the first 20000 training samples,
+    # otherwise use the last 20000 training samples
     if config['adversary']:
         train_df = data_dict['train'].iloc[:int(config['number_train']/2), :]
     else:
