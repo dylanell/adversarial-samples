@@ -2,16 +2,12 @@
 Script to train a CNN classifier with PyTorch.
 '''
 
-import time
 import yaml
 import torch
 from torchvision.transforms import transforms
-import torch.nn.functional as F
 
 from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
-from module.classifier import Classifier
-
 from model.vanilla_classifier import VanillaClassifier
 
 def main():
@@ -23,8 +19,7 @@ def main():
     data_dict = generate_df_from_image_dataset(config['dataset_directory'])
 
     # add number of classes in labels to config
-    config['output_dimension'] = \
-        data_dict['train']['Label'].nunique()
+    config['output_dimension'] = data_dict['train']['Label'].nunique()
 
     # add number of samples to config
     config['number_train'] = len(data_dict['train'])
