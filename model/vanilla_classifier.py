@@ -107,7 +107,7 @@ class VanillaClassifier():
             epoch_time = time.time() - epoch_start
 
             # save model
-            torch.save(model.state_dict(),'{}{}.pt'.format(
+            torch.save(self.model.state_dict(),'{}{}.pt'.format(
                 self.config['output_directory'], self.config['model_name']))
 
             # print epoch metrics
