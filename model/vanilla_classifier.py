@@ -19,6 +19,13 @@ class VanillaClassifier():
         self.model = Classifier(
             self.config['input_dimensions'], self.config['output_dimension'])
 
+        # if modle file provided, load pretrained params
+        if config['model_file']:
+            self.model.load_state_dict(
+                torch.load(config['model_file'], map_location=self.device))
+            print('[INFO]: loaded model from \'{}\''\
+                .format(config['model_file']))
+
         # define cross entropy loss (requires logits as outputs)
         self.loss_fn = torch.nn.CrossEntropyLoss()
 
