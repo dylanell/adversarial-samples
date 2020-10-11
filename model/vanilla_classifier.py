@@ -87,7 +87,7 @@ class VanillaClassifier():
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute loss
-                loss = loss_fn(logits_batch, label_batch)
+                loss = self.loss_fn(logits_batch, label_batch)
 
                 # accumulate loss
                 test_epoch_loss += loss.item()
