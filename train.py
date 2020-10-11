@@ -28,9 +28,15 @@ def main():
     # get number of classes in labels
     num_class = data_dict['train']['Label'].nunique()
 
+    # if training as adversarial, use the first 20000 training samples, # otherwise use the last 20000 training samples
+    if config['adversary']:
+        train_df = data_dict['train'].iloc[:20000, :]
+    else:
+        train_df = data_dict['train'].iloc[20000:, :]
+
     # build training dataloader
     train_set, train_loader = build_image_dataset(
-        data_dict['train'],
+        train_df,
         image_size=config['input_dimensions'][:-1],
         batch_size=config['batch_size'],
         num_workers=config['number_workers']
