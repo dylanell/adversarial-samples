@@ -9,6 +9,7 @@ from torchvision.transforms import transforms
 from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
 from model.vanilla_classifier import VanillaClassifier
+from model.adversarial_classifier import AdversarialClassifier
 
 def main():
     # parse configuration file
@@ -49,7 +50,14 @@ def main():
     )
 
     # initialize the model
-    model = VanillaClassifier(config)
+    if config['model_type'] == 'vanilla_classifier':
+        model = VanillaClassifier(config)
+    elif config['model_type'] == 'adversarial_classifier':
+        model = AdversarialClassifier(config)
+    else:
+        print('[ERROR]: unknown model type \'{}\''\
+            .format(config['model_type']))
+        exit()
 
     # train the model
     model.train_epochs(train_loader, test_loader)
