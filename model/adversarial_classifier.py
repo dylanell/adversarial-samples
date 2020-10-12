@@ -70,8 +70,8 @@ class AdversarialClassifier():
                 input_batch = batch['image'].to(self.device)
                 label_batch = batch['label'].to(self.device)
 
-                # require gradient for input data (need to do this to compute the gradients
-                # for inputs dutring backward() call)
+                # require gradient for input data (need to do this to compute
+                # the gradients for inputs dutring backward() call)
                 input_batch.requires_grad = True
 
                 # make adversarial samples from input batch
