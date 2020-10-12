@@ -76,7 +76,12 @@ def tile_images(imgs):
     return tile_imgs
 
 def graph_inputs_with_predictions(
-    inputs, labels, output_probs, output_preds, figsize=(8, 10)):
+        inputs, labels, output_probs, output_preds, figsize=(8, 10),
+        label_dict=None):
+    # configure plot x values
+    x_labels = range(len(output_probs[0]))
+    if (label_dict):
+        x_labels = [label_dict[v] for v in x_labels]
 
     # remap inputs to [0 - 255] and convetr to uint 8
     new_min, new_max = 0, 255
@@ -91,15 +96,18 @@ def graph_inputs_with_predictions(
     fig, axs = plt.subplots(num_rows, 2, figsize=figsize)
 
     for i in range(inputs.shape[0]):
-
-        # save current image to file
+        # get current image
         img = inputs[i, :, :, 0]
 
         # add image trace
         axs[i, 0].imshow(img)
-        axs[i, 0].set_title('Target: {}, Prediction: {}'.format(labels[i], output_preds[i]))
+        if label_dict:
+            axs[i, 0].set_title('Target: {}, Prediction: {}'\
+                .format(label_dict[labels[i]], label_dict[output_preds[i]]))
+        else:
+            axs[i, 0].set_title('Target: {}, Prediction: {}'\
+                .format(labels[i], output_preds[i]))
         axs[i, 0].axis('off')
-
         axs[i, 1].bar(x=range(len(output_probs[i])), height=output_probs[i])
         axs[i, 1].set_title('Prediction Probabilities')
         axs[i, 1].set_xticks(range(len(output_probs[i])))
@@ -107,6 +115,7 @@ def graph_inputs_with_predictions(
         axs[i, 1].set_ylim(0., 1.1)
         axs[i, 1].set_xlabel('Class')
         axs[i, 1].set_ylabel('Probability')
+        axs[i, 1].set_xticklabels(x_labels, rotation=-70)
 
     fig.tight_layout()
 
