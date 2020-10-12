@@ -10,6 +10,7 @@ from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
 from model.vanilla_classifier import VanillaClassifier
 from model.adversarial_classifier import AdversarialClassifier
+from model.suppressed_classifier import SuppressedClassifier
 
 def main():
     # parse configuration file
@@ -54,6 +55,8 @@ def main():
         model = VanillaClassifier(config)
     elif config['model_type'] == 'adversarial_classifier':
         model = AdversarialClassifier(config)
+    elif config['model_type'] == 'suppressed_classifier':
+        model = SuppressedClassifier(config)
     else:
         print('[ERROR]: unknown model type \'{}\''\
             .format(config['model_type']))
