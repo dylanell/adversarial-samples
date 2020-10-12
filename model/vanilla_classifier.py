@@ -118,7 +118,8 @@ class VanillaClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # print epoch metrics
-            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, Train Loss: {:.2f},'\
-                ' Train Accuracy: {:.2f}, Test Loss: {:.2f}, Test Accuracy: {:.2f}'
+            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
+                'Train Loss: {:.2f}, Train Accuracy: {:.2f}, '\
+                'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
             print(template.format(e+1, epoch_time, train_loss,
                 train_acc, test_loss, test_acc))
