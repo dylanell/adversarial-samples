@@ -11,6 +11,7 @@ from util.data_utils import generate_df_from_image_dataset
 from model.vanilla_classifier import VanillaClassifier
 from model.adversarial_classifier import AdversarialClassifier
 from model.suppressed_classifier import SuppressedClassifier
+from model.smooth_classifier import SmoothClassifier
 
 def main():
     # parse configuration file
@@ -57,6 +58,8 @@ def main():
         model = AdversarialClassifier(config)
     elif config['model_type'] == 'suppressed_classifier':
         model = SuppressedClassifier(config)
+    elif config['model_type'] == 'smooth_classifier':
+        model = SmoothClassifier(config)
     else:
         print('[ERROR]: unknown model type \'{}\''\
             .format(config['model_type']))
