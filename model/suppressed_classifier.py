@@ -69,8 +69,12 @@ class SuppressedClassifier():
                 input_batch = batch['image'].to(self.device)
                 label_batch = batch['label'].to(self.device)
 
+                # get number of samples in batch
+                bs = input_batch.shape[0]
+
                 # add noise to input batch
-                input_batch += 0.2 * self.input_dist.sample().to(self.device)
+                input_batch += \
+                    0.2 * self.input_dist.sample()[:bs].to(self.device)
 
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
