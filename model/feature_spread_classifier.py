@@ -71,12 +71,7 @@ class FeatureSpreadClassifier():
                 # compute hidden layer activations
                 hidden_batch = self.model.hidden(input_batch)
 
-                class_reps = torch.cat([torch.mean(hidden_batch[-1][label_batch == i], dim=0, keepdim=True) for i in range(self.config['output_dimension'])], dim=0)
-
-                # compute covariance of class-wise feature representations
-                z = class_reps - torch.mean(class_reps, dim=0, keepdim=True)
-                cov = (1./z.shape[0]) * torch.matmul(
-                    class_reps.T, class_reps)
+                class_reps = torch.cat([torch.mean(hidden_batch[-1][label_batch == i], dim=0, keepdim=True) for i in torch.unique(label_batch)], dim=0)
 
                 n = class_reps.shape[0]
                 d = class_reps.shape[1]
@@ -87,7 +82,11 @@ class FeatureSpreadClassifier():
                     torch.ones(self.config['output_dimension'],
                     self.config['output_dimension']), diagonal=1) == 1])
 
-                loss += (0.01 * (avg_rep_dist - 1000.**2))
+                # computed weighted lagrangian for class-wise feature spread
+                rep_loss = 0.001 * (avg_rep_dist - 1000.)**2
+
+                # add class-wise feature spread regularizer to loss
+                loss += rep_loss
 
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
