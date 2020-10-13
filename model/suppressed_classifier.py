@@ -39,7 +39,7 @@ class SuppressedClassifier():
         # move the model to the training device
         self.model.to(self.device)
 
-        # initialize a random input distriution
+        # initialize a random input distribution
         self.input_dist = torch.distributions.Uniform(
             -1.*torch.ones(
                 config['batch_size'], config['input_dimensions'][-1],
@@ -69,25 +69,15 @@ class SuppressedClassifier():
                 input_batch = batch['image'].to(self.device)
                 label_batch = batch['label'].to(self.device)
 
+                # add noise to input batch
+                input_batch += 0.2 * self.input_dist.sample().to(self.device)
+
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute loss
                 loss = self.loss_fn(logits_batch, label_batch)
-
-                # sample a random image batch
-                rand_input_batch = self.input_dist.sample().to(self.device)
-
-                # compute random batch logits
-                rand_logits = self.model(rand_input_batch)
-
-                # compute mse loss between rand_logits and the zero vector
-                regularizer = torch.nn.functional.mse_loss(
-                    rand_logits, torch.zeros_like(rand_logits))
-
-                # add weighted random activation loss to total loss
-                loss += (1. * regularizer)
 
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
