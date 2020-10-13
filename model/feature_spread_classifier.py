@@ -71,16 +71,22 @@ class FeatureSpreadClassifier():
                 # compute hidden layer activations
                 hidden_batch = self.model.hidden(input_batch)
 
+                # compute average class-wise feature representations for each
+                # unique label in the current label batch
                 class_reps = torch.cat([torch.mean(hidden_batch[-1][label_batch == i], dim=0, keepdim=True) for i in torch.unique(label_batch)], dim=0)
 
+                # compute pairwise distances between each average class-wise
+                # feature representation
                 n = class_reps.shape[0]
                 d = class_reps.shape[1]
                 a = class_reps.unsqueeze(1).expand(n, n, d)
                 b = class_reps.unsqueeze(0).expand(n, n, d)
                 rep_dist = torch.pow(a - b, 2).sum(dim=2)
+
+                # compute mean non-equivalent class paiwise distance
                 avg_rep_dist = torch.mean(rep_dist[torch.triu(
-                    torch.ones(self.config['output_dimension'],
-                    self.config['output_dimension']), diagonal=1) == 1])
+                    torch.ones(class_reps.shape[0],
+                    class_reps.shape[0]), diagonal=1) == 1])
 
                 # computed weighted lagrangian for class-wise feature spread
                 rep_loss = 0.001 * (avg_rep_dist - 1000.)**2
