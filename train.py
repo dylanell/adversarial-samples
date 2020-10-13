@@ -12,6 +12,7 @@ from model.vanilla_classifier import VanillaClassifier
 from model.adversarial_classifier import AdversarialClassifier
 from model.suppressed_classifier import SuppressedClassifier
 from model.smooth_classifier import SmoothClassifier
+from model.feature_spread_classifier import FeatureSpreadClassifier
 
 def main():
     # parse configuration file
@@ -60,6 +61,8 @@ def main():
         model = SuppressedClassifier(config)
     elif config['model_type'] == 'smooth_classifier':
         model = SmoothClassifier(config)
+    elif config['model_type'] == 'feature_spread_classifier':
+        model = FeatureSpreadClassifier(config)
     else:
         print('[ERROR]: unknown model type \'{}\''\
             .format(config['model_type']))

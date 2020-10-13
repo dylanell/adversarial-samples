@@ -44,3 +44,18 @@ class Classifier(torch.nn.Module):
         z_5_flat = torch.flatten(z_5, start_dim=1)
         z_6 = self.fc_1(z_5_flat)
         return z_6
+
+    # return all hiddeen feature representations
+    def hidden(self, x):
+        # compute output
+        z_1 = self.norm_1(F.relu(self.conv_1(x)))
+        z_2 = self.norm_2(F.relu(self.conv_2(z_1)))
+        z_3 = self.norm_3(F.relu(self.conv_3(z_2)))
+        z_4 = self.norm_4(F.relu(self.conv_4(z_3)))
+        z_5 = self.norm_5(F.relu(self.conv_5(z_4)))
+        z_1_flat = torch.flatten(z_1, start_dim=1)
+        z_2_flat = torch.flatten(z_2, start_dim=1)
+        z_3_flat = torch.flatten(z_3, start_dim=1)
+        z_4_flat = torch.flatten(z_4, start_dim=1)
+        z_5_flat = torch.flatten(z_5, start_dim=1)
+        return [z_1_flat, z_2_flat, z_3_flat, z_4_flat, z_5_flat]
