@@ -8,6 +8,7 @@ confuse the model with small changes within inputs.
 import torch
 from module.classifier import Classifier
 import time
+from sklearn import metrics
 
 class FeatureSpreadClassifier():
     def __init__(self, config):
@@ -21,7 +22,8 @@ class FeatureSpreadClassifier():
         # initialize model
         self.model = Classifier(
             self.config['input_dimensions'], self.config['output_dimension'],
-            hid_act=self.config['hidden_activation'])
+            hid_act=self.config['hidden_activation'],
+            norm=config['normalization'])
 
         # if model file provided, load pretrained params
         if config['model_file']:
@@ -72,25 +74,88 @@ class FeatureSpreadClassifier():
                 # compute hidden layer activations
                 hidden_batch = self.model.hidden(input_batch)
 
+                # get unique labels present in this batch
+                unique_labels = torch.unique(label_batch)
+
+                # get latent rapresentations of final hidden layer
+                reps = hidden_batch[-1]
+
+                '''
+                Computing the Silhouette Coefficient of hidden
+                representations.
+                Reference: https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation
+                '''
+
+                '''
+                a: The mean distance between a sample and all other
+                points in the same class. Calling this 'mean_intra_class_dist'.
+                '''
+
+                # construct pairwise euclidean distance matrix of
+                # latent representations
+                n = reps.shape[0]
+                d = reps.shape[1]
+                a = reps.unsqueeze(1).expand(n, n, d)
+                b = reps.unsqueeze(0).expand(n, n, d)
+                reps_dist_matrix = torch.pow(a - b, 2).sum(dim=2)
+                #print(reps_dist_matrix)
+
+                # extract pairwise distances only for members of the
+                # same class for each unique class in the label batch
+                class_wise_reps_dist_matrices = [
+                    reps_dist_matrix[label_batch == i][:, label_batch == i] \
+                    for i in unique_labels]
+                #print(class_wise_reps_dist_matrices[0])
+
+                # grab only the upper traingular values of each
+                # class-wise representation distance matrix to compute
+                # the mean distance between all different samples of
+                # the same class
+                mean_class_wise_rep_dists = torch.cat([
+                    torch.mean(class_wise_reps_dist_matrices[i][torch.triu( \
+                    torch.ones(class_wise_reps_dist_matrices[i].shape[0], \
+                    class_wise_reps_dist_matrices[i].shape[0]), \
+                    diagonal=1) == 1]).expand(1) \
+                    for i in unique_labels], dim=0)
+                #print(mean_class_wise_rep_dists)
+
+                # compute the total mean class-wise representation
+                # distance accross all classes
+                mean_intra_class_dist = torch.mean(mean_class_wise_rep_dists)
+                #print(mean_intra_class_dist)
+
+                '''
+                b: The mean distance between a sample and all other points in
+                the next nearest cluster. Calling this 'mean_inter_class_dist'.
+                '''
+
                 # compute average class-wise feature representations for each
-                # unique label in the current label batch
-                class_reps = torch.cat([torch.mean(hidden_batch[-1][label_batch == i], dim=0, keepdim=True) for i in torch.unique(label_batch)], dim=0)
+                # unique label in the current label batch (class clusters)
+                class_clusters = torch.cat([
+                    torch.mean(reps[label_batch == i], dim=0, \
+                    keepdim=True) for i in unique_labels], dim=0)
+                print(class_clusters)
 
-                # compute pairwise distances between each average class-wise
-                # feature representation
-                n = class_reps.shape[0]
-                d = class_reps.shape[1]
-                a = class_reps.unsqueeze(1).expand(n, n, d)
-                b = class_reps.unsqueeze(0).expand(n, n, d)
-                rep_dist = torch.pow(a - b, 2).sum(dim=2)
+                # compute pairwise distances between each class cluster
+                n = class_clusters.shape[0]
+                d = class_clusters.shape[1]
+                a = class_clusters.unsqueeze(1).expand(n, n, d)
+                b = class_clusters.unsqueeze(0).expand(n, n, d)
+                class_cluster_dist_matrix = torch.pow(a - b, 2).sum(dim=2)
+                print(class_cluster_dist_matrix)
 
-                # compute mean non-equivalent class paiwise distance
-                avg_rep_dist = torch.mean(rep_dist[torch.triu(
-                    torch.ones(class_reps.shape[0],
-                    class_reps.shape[0]), diagonal=1) == 1])
+                # get nearest clusters
+                nearest_cluster = torch.argsort(class_cluster_dist_matrix, dim=1)[:, 1]
+                print(nearest_cluster)
+                exit()
 
-                # computed weighted lagrangian for class-wise feature spread
-                rep_loss = 0.001 * (avg_rep_dist - 1000.)**2
+                # compute mean non-equivalent class pairwise distance
+                # avg_rep_dist = torch.mean(rep_dist[torch.triu(
+                #     torch.ones(class_reps.shape[0],
+                #     class_reps.shape[0]), diagonal=1) == 1])
+                #
+                # # computed weighted lagrangian for class-wise feature spread
+                # rep_loss = 0.001 * (avg_rep_dist - 1000.)**2
 
                 # add class-wise feature spread regularizer to loss
                 loss += rep_loss

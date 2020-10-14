@@ -1,11 +1,11 @@
 dataset_directory: '/home/dylan/datasets/cifar_png/'
 output_directory: '/tmp/'
-model_type: 'adversarial_classifier'
+model_type: 'feature_spread_classifier'
 model_file: null
 guide_model_file: '/home/dylan/trained_model_files/pytorch/adversarial_project/other_models/guide_classifier.pt'
-model_name: 'adversarial_classifier'
+model_name: 'feature_spread_classifier'
 number_epochs: 20
-batch_size: 32
+batch_size: 64
 input_dimensions: !!python/tuple
 - 32
 - 32
