@@ -1,6 +1,6 @@
 '''
 Smooth classifier model class. This model is trained with a regularizer
-that suppresses model gradients w.r.t inputs.
+that smooths model output as it is randomly perturbed.
 '''
 
 import torch
@@ -18,7 +18,8 @@ class SmoothClassifier():
 
         # initialize model
         self.model = Classifier(
-            self.config['input_dimensions'], self.config['output_dimension'])
+            self.config['input_dimensions'], self.config['output_dimension'],
+            hid_act=self.config['hidden_activation'])
 
         # if model file provided, load pretrained params
         if config['model_file']:
@@ -38,6 +39,16 @@ class SmoothClassifier():
 
         # move the model to the training device
         self.model.to(self.device)
+
+        # initialize a random input distribution
+        self.input_dist = torch.distributions.Uniform(
+            -1.*torch.ones(
+                config['batch_size'], config['input_dimensions'][-1],
+                config['input_dimensions'][0], config['input_dimensions'][1]),
+            torch.ones(
+                config['batch_size'], config['input_dimensions'][-1],
+                config['input_dimensions'][0], config['input_dimensions'][1])
+        )
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
@@ -59,9 +70,12 @@ class SmoothClassifier():
                 input_batch = batch['image'].to(self.device)
                 label_batch = batch['label'].to(self.device)
 
-                # require gradient for input data (need to do this to compute
-                # the gradients for inputs dutring backward() call)
-                input_batch.requires_grad = True
+                # get number of samples in batch
+                bs = input_batch.shape[0]
+
+                # add noise to input batch
+                input_batch += \
+                    0.2 * self.input_dist.sample()[:bs].to(self.device)
 
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
@@ -69,18 +83,6 @@ class SmoothClassifier():
 
                 # compute loss
                 loss = self.loss_fn(logits_batch, label_batch)
-
-                # compute gradients on logits w.r.t inputs
-                logits_batch.backward(torch.ones_like(logits_batch), retain_graph=True)
-
-                # get logits gradient w.r.t inputs
-                grads = input_batch.grad
-
-                # regularizer is gradient magnitude
-                regularizer = torch.norm(grads)
-
-                # add weighted random activation loss to total loss
-                loss += (1. * regularizer)
 
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()

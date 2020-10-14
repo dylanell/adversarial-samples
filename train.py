@@ -10,7 +10,6 @@ from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
 from model.vanilla_classifier import VanillaClassifier
 from model.adversarial_classifier import AdversarialClassifier
-from model.suppressed_classifier import SuppressedClassifier
 from model.smooth_classifier import SmoothClassifier
 from model.feature_spread_classifier import FeatureSpreadClassifier
 
@@ -52,13 +51,14 @@ def main():
         num_workers=config['number_workers']
     )
 
+    # define hidden activation to use
+    config['hidden_activation'] = 'tanh'
+
     # initialize the model
     if config['model_type'] == 'vanilla_classifier':
         model = VanillaClassifier(config)
     elif config['model_type'] == 'adversarial_classifier':
         model = AdversarialClassifier(config)
-    elif config['model_type'] == 'suppressed_classifier':
-        model = SuppressedClassifier(config)
     elif config['model_type'] == 'smooth_classifier':
         model = SmoothClassifier(config)
     elif config['model_type'] == 'feature_spread_classifier':

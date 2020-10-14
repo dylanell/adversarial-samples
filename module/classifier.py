@@ -5,9 +5,17 @@ CNN classifier implemented in PyTorch.
 import torch
 import torch.nn.functional as F
 
+# torch activation functions
+activation = {
+    'relu': torch.nn.ReLU(),
+    'leaky_relu': torch.nn.LeakyReLU(),
+    'tanh': torch.nn.Tanh(),
+    'sigmoid': torch.nn.Sigmoid()
+}
+
 class Classifier(torch.nn.Module):
     # initialize and define all layers
-    def __init__(self, image_dims, out_dim):
+    def __init__(self, image_dims, out_dim, hid_act='relu'):
         # run base class initializer
         super(Classifier, self).__init__()
 
@@ -33,14 +41,17 @@ class Classifier(torch.nn.Module):
         # define fully connected layers
         self.fc_1 = torch.nn.Linear(512*2*2, out_dim)
 
+        # define activation functions
+        self.hid_act = activation[hid_act]
+
     # compute forward propagation of input x
     def forward(self, x):
         # compute output
-        z_1 = self.norm_1(F.relu(self.conv_1(x)))
-        z_2 = self.norm_2(F.relu(self.conv_2(z_1)))
-        z_3 = self.norm_3(F.relu(self.conv_3(z_2)))
-        z_4 = self.norm_4(F.relu(self.conv_4(z_3)))
-        z_5 = self.norm_5(F.relu(self.conv_5(z_4)))
+        z_1 = self.norm_1(self.hid_act(self.conv_1(x)))
+        z_2 = self.norm_2(self.hid_act(self.conv_2(z_1)))
+        z_3 = self.norm_3(self.hid_act(self.conv_3(z_2)))
+        z_4 = self.norm_4(self.hid_act(self.conv_4(z_3)))
+        z_5 = self.norm_5(self.hid_act(self.conv_5(z_4)))
         z_5_flat = torch.flatten(z_5, start_dim=1)
         z_6 = self.fc_1(z_5_flat)
         return z_6
@@ -48,11 +59,11 @@ class Classifier(torch.nn.Module):
     # return all hiddeen feature representations
     def hidden(self, x):
         # compute output
-        z_1 = self.norm_1(F.relu(self.conv_1(x)))
-        z_2 = self.norm_2(F.relu(self.conv_2(z_1)))
-        z_3 = self.norm_3(F.relu(self.conv_3(z_2)))
-        z_4 = self.norm_4(F.relu(self.conv_4(z_3)))
-        z_5 = self.norm_5(F.relu(self.conv_5(z_4)))
+        z_1 = self.norm_1(self.hid_act(self.conv_1(x)))
+        z_2 = self.norm_2(self.hid_act(self.conv_2(z_1)))
+        z_3 = self.norm_3(self.hid_act(self.conv_3(z_2)))
+        z_4 = self.norm_4(self.hid_act(self.conv_4(z_3)))
+        z_5 = self.norm_5(self.hid_act(self.conv_5(z_4)))
         z_1_flat = torch.flatten(z_1, start_dim=1)
         z_2_flat = torch.flatten(z_2, start_dim=1)
         z_3_flat = torch.flatten(z_3, start_dim=1)
