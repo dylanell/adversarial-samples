@@ -51,8 +51,9 @@ def main():
         num_workers=config['number_workers']
     )
 
-    # define hidden activation to use
+    # define hidden activation and normalization
     config['hidden_activation'] = 'tanh'
+    config['normalization'] = 'layer'
 
     # initialize the model
     if config['model_type'] == 'vanilla_classifier':
