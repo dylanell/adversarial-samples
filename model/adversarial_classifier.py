@@ -118,6 +118,10 @@ class AdversarialClassifier():
                     (pred_batch == label_batch)
                 ).item()
 
+            # compute epoch average loss and accuracy metrics
+            train_loss = train_epoch_loss / i
+            train_acc = 100.0 * train_num_correct / self.config['number_train']
+
             # run through epoch of test data
             for i, batch in enumerate(test_loader):
                 # parse batch and move to training device
@@ -140,8 +144,6 @@ class AdversarialClassifier():
                 ).item()
 
             # compute epoch average loss and accuracy metrics
-            train_loss = train_epoch_loss / i
-            train_acc = 100.0 * train_num_correct / self.config['number_train']
             test_loss = test_epoch_loss / i
             test_acc = 100.0 * test_num_correct / self.config['number_test']
 
