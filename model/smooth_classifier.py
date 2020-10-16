@@ -100,8 +100,8 @@ class SmoothClassifier():
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
 
-                # compute gradients w.r.t loss (repopulate gradient attribute
-                # for all trainable params)
+                # compute gradients w.r.t loss (repopulate gradient
+                # attribute for all trainable params)
                 loss.backward()
 
                 # update params with current gradients

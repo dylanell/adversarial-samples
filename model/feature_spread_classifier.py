@@ -47,7 +47,7 @@ class FeatureSpreadClassifier():
         self.model.to(self.device)
 
         # initialize tensorboard writer
-        self.writer = SummaryWriter(config['output_directory'])
+        self.writer = SummaryWriter()
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
@@ -105,8 +105,8 @@ class FeatureSpreadClassifier():
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
 
-                # compute gradients w.r.t loss (repopulate gradient attribute
-                # for all trainable params)
+                # compute gradients w.r.t loss (repopulate gradient
+                # attribute for all trainable params)
                 loss.backward()
 
                 # update params with current gradients
