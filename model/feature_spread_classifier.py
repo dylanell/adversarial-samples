@@ -40,7 +40,8 @@ class FeatureSpreadClassifier():
         # initialize an optimizer
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
-            lr=self.config['learning_rate']
+            lr=self.config['learning_rate'],
+            weight_decay=self.config['weight_decay']
         )
 
         # move the model to the training device
