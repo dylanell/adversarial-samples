@@ -29,10 +29,10 @@ def main():
     # otherwise use the last 20000 training samples
     if config['adversary']:
         train_df = data_dict['train'].iloc[
-            :int(config['number_train']/2), :]
+            :int(len(data_dict['train'])/2), :]
     else:
         train_df = data_dict['train'].iloc[
-            int(config['number_train']/2):, :]
+            int(len(data_dict['test'])/2):, :]
 
     # add number of samples to config
     config['number_train'] = len(train_df)
