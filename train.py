@@ -32,7 +32,7 @@ def main():
             :int(len(data_dict['train'])/2), :]
     else:
         train_df = data_dict['train'].iloc[
-            int(len(data_dict['test'])/2):, :]
+            int(len(data_dict['train'])/2):, :]
 
     # add number of samples to config
     config['number_train'] = len(train_df)
