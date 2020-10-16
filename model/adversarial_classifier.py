@@ -6,6 +6,7 @@ samples.
 import torch
 from module.classifier import Classifier
 import time
+from torch.utils.tensorboard import SummaryWriter
 
 class AdversarialClassifier():
     def __init__(self, config):
@@ -54,6 +55,9 @@ class AdversarialClassifier():
         self.model.to(self.device)
         self.guide_model.to(self.device)
 
+        # initialize tensorboard writer
+        writer = SummaryWriter(config['output_directory'])
+
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
 
@@ -100,6 +104,14 @@ class AdversarialClassifier():
                 # compute loss
                 loss = self.loss_fn(logits_batch, label_batch)
 
+                # accumulate loss
+                train_epoch_loss += loss.item()
+
+                # accumulate number correct
+                train_num_correct += torch.sum(
+                    (pred_batch == label_batch)
+                ).item()
+
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
 
@@ -109,14 +121,6 @@ class AdversarialClassifier():
 
                 # update params with current gradients
                 self.optimizer.step()
-
-                # accumulate loss
-                train_epoch_loss += loss.item()
-
-                # accumulate number correct
-                train_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
 
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
@@ -153,6 +157,12 @@ class AdversarialClassifier():
             # save model
             torch.save(self.model.state_dict(),'{}{}.pt'.format(
                 self.config['output_directory'], self.config['model_name']))
+
+            # add metrics to tensorboard
+            writer.add_scalar('Train Loss', train_loss, e+1)
+            writer.add_scalar('Train Accuracy', train_acc, e+1)
+            writer.add_scalar('Test Loss', test_loss, e+1)
+            writer.add_scalar('Test Accuracy', test_acc, e+1)
 
             # print epoch metrics
             template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
