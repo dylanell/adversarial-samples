@@ -19,21 +19,24 @@ def main():
         config = yaml.load(fp, Loader=yaml.FullLoader)
 
     # generate filenames/labels df from image data directory
-    data_dict = generate_df_from_image_dataset(config['dataset_directory'])
+    data_dict = generate_df_from_image_dataset(
+        config['dataset_directory'])
 
     # add number of classes in labels to config
     config['output_dimension'] = data_dict['train']['Label'].nunique()
 
-    # add number of samples to config
-    config['number_train'] = len(data_dict['train'])
-    config['number_test'] = len(data_dict['test'])
-
     # if training as adversarial, use the first 20000 training samples,
     # otherwise use the last 20000 training samples
     if config['adversary']:
-        train_df = data_dict['train'].iloc[:int(config['number_train']/2), :]
+        train_df = data_dict['train'].iloc[
+            :int(config['number_train']/2), :]
     else:
-        train_df = data_dict['train'].iloc[int(config['number_train']/2):, :]
+        train_df = data_dict['train'].iloc[
+            int(config['number_train']/2):, :]
+
+    # add number of samples to config
+    config['number_train'] = len(train_df)
+    config['number_test'] = len(data_dict['test'])
 
     # build training dataloader
     train_set, train_loader = build_image_dataset(
@@ -50,10 +53,6 @@ def main():
         batch_size=config['batch_size'],
         num_workers=config['number_workers']
     )
-
-    # define hidden activation and normalization
-    config['hidden_activation'] = 'tanh'
-    config['normalization'] = 'layer'
 
     # initialize the model
     if config['model_type'] == 'vanilla_classifier':

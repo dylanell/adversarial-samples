@@ -1,9 +1,9 @@
 dataset_directory: '/home/dylan/datasets/cifar_png/'
 output_directory: '/tmp/'
-model_type: 'feature_spread_classifier'
+model_type: 'vanilla_classifier'
 model_file: null
 guide_model_file: '/home/dylan/trained_model_files/pytorch/adversarial_project/other_models/guide_classifier.pt'
-model_name: 'feature_spread_classifier'
+model_name: 'vanilla_classifier'
 number_epochs: 20
 batch_size: 64
 input_dimensions: !!python/tuple
@@ -11,6 +11,8 @@ input_dimensions: !!python/tuple
 - 32
 - 3
 learning_rate: 0.001
+hidden_activation: relu
+normalization: layer
 number_workers: 1
 adversary: False
 label_dict:
