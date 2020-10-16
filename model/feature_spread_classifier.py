@@ -149,11 +149,11 @@ class FeatureSpreadClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            self.writer.add_scalar('Train Loss', train_loss, e+1)
-            self.writer.add_scalar('Train Accuracy', train_acc, e+1)
             self.writer.add_scalar('Batch Latent Sillhouette Coeff.', s, e+1)
-            self.writer.add_scalar('Test Loss', test_loss, e+1)
-            self.writer.add_scalar('Test Accuracy', test_acc, e+1)
+            self.writer.add_scalar('Loss/Train', train_loss, e+1)
+            self.writer.add_scalar('Accuracy/Train', train_acc, e+1)
+            self.writer.add_scalar('Loss/Test', test_loss, e+1)
+            self.writer.add_scalar('Accuracy/Test', test_acc, e+1)
 
             # print epoch metrics
             template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
