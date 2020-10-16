@@ -53,7 +53,7 @@ class SmoothClassifier():
         )
 
         # initialize tensorboard writer
-        writer = SummaryWriter(config['output_directory'])
+        self.writer = SummaryWriter(config['output_directory'])
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
@@ -144,10 +144,10 @@ class SmoothClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            writer.add_scalar('Train Loss', train_loss, e+1)
-            writer.add_scalar('Train Accuracy', train_acc, e+1)
-            writer.add_scalar('Test Loss', test_loss, e+1)
-            writer.add_scalar('Test Accuracy', test_acc, e+1)
+            self.writer.add_scalar('Train Loss', train_loss, e+1)
+            self.writer.add_scalar('Train Accuracy', train_acc, e+1)
+            self.writer.add_scalar('Test Loss', test_loss, e+1)
+            self.writer.add_scalar('Test Accuracy', test_acc, e+1)
 
             # print epoch metrics
             template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
