@@ -56,7 +56,7 @@ class AdversarialClassifier():
         self.guide_model.to(self.device)
 
         # initialize tensorboard writer
-        self.writer = SummaryWriter(config['output_directory'])
+        self.writer = SummaryWriter(config['output_directory']+'runs/')
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
