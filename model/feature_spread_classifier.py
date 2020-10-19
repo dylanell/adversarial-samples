@@ -9,7 +9,6 @@ import torch
 from module.classifier import Classifier
 import time
 from torch.utils.tensorboard import SummaryWriter
-from sklearn import metrics
 
 from util.pytorch_utils import sillhouette_coefficient
 
