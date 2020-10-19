@@ -32,9 +32,10 @@ class AdversarialClassifier():
 
         # initialize guide model (for making adversarial samples)
         self.guide_model = Classifier(
-            self.config['input_dimensions'], self.config['output_dimension'],
+            self.config['input_dimensions'],
+            self.config['output_dimension'],
             hid_act=self.config['hidden_activation'],
-            norm=config['normalization'])
+            norm=self.config['normalization'])
 
         # must be able to load guide model to proceed
         self.guide_model.load_state_dict(

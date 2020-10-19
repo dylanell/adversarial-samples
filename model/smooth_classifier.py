@@ -19,9 +19,10 @@ class SmoothClassifier():
 
         # initialize model
         self.model = Classifier(
-            self.config['input_dimensions'], self.config['output_dimension'],
+            self.config['input_dimensions'],
+            self.config['output_dimension'],
             hid_act=self.config['hidden_activation'],
-            norm=config['normalization'])
+            norm=self.config['normalization'])
 
         # if model file provided, load pretrained params
         if config['model_file']:
