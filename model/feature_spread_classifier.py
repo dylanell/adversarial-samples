@@ -9,6 +9,7 @@ import torch
 from module.classifier import Classifier
 import time
 from torch.utils.tensorboard import SummaryWriter
+from sklearn import metrics
 
 from util.pytorch_utils import sillhouette_coefficient
 
@@ -23,9 +24,10 @@ class FeatureSpreadClassifier():
 
         # initialize model
         self.model = Classifier(
-            self.config['input_dimensions'], self.config['output_dimension'],
+            self.config['input_dimensions'],
+            self.config['output_dimension'],
             hid_act=self.config['hidden_activation'],
-            norm=config['normalization'])
+            norm=self.config['normalization'])
 
         # if model file provided, load pretrained params
         if config['model_file']:
@@ -63,6 +65,7 @@ class FeatureSpreadClassifier():
             train_num_correct = 0
             test_epoch_loss = 0.0
             test_num_correct = 0
+            epoch_s = 0.0
 
             # run through epoch of train data
             for i, batch in enumerate(train_loader):
@@ -88,20 +91,23 @@ class FeatureSpreadClassifier():
                 # compute hidden layer activations
                 hidden_batch = self.model.hidden(input_batch)
 
-                # get latent rapresentations of final hidden layer
-                reps = hidden_batch[-1]
+                # create cluster metrics regularizer for each hidden layer
+                ss = []
+                for reps in hidden_batch:
+                    # NOTE: optionaly perform clustering here to compute
+                    # estimated labels for unsupervised learning
 
-                s = sillhouette_coefficient(reps, label_batch)
+                    s = sillhouette_coefficient(reps, label_batch)
 
-                # regularizer as langrangian pushing s _> 1
-                regularizer = (1 - s)**2
+                    ss.append(s.item())
 
-                # X = reps.cpu().detach().numpy()
-                # labels = label_batch.cpu().detach().numpy()
-                # print(s.item(), metrics.silhouette_score(X, labels, metric='euclidean'), regularizer.item())
+                    # regularizer as langrangian pushing s _> 1
+                    regularizer = (1 - s)**2
 
-                # add regularizer to loss
-                loss += (1. * regularizer)
+                    # add regularizer to loss
+                    loss += (1. * regularizer)
+
+                epoch_s += torch.mean(torch.Tensor(ss)).item()
 
                 # zero out gradient attributes for all trainabe params
                 self.optimizer.zero_grad()
@@ -116,6 +122,9 @@ class FeatureSpreadClassifier():
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
             train_acc = 100.0 * train_num_correct / self.config['number_train']
+
+            # compute epoch average sillhouette coefficient
+            avg_s = epoch_s / i
 
             # run through epoch of test data
             for i, batch in enumerate(test_loader):
@@ -150,7 +159,8 @@ class FeatureSpreadClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            self.writer.add_scalar('Batch Latent Sillhouette Coeff.', s, e+1)
+            self.writer.add_scalar(
+                'Batch Latent Sillhouette Coeff.', avg_s, e+1)
             self.writer.add_scalar('Loss/Train', train_loss, e+1)
             self.writer.add_scalar('Accuracy/Train', train_acc, e+1)
             self.writer.add_scalar('Loss/Test', test_loss, e+1)
