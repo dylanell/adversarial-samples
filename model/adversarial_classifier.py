@@ -89,7 +89,8 @@ class AdversarialClassifier():
                 adv_loss = self.loss_fn(adv_logits_batch, label_batch)
                 adv_loss.backward()
                 adv_grads = input_batch.grad
-                input_batch = input_batch + (0.2 * torch.sign(adv_grads))
+                epsilon = 0.4 * torch.rand(1)
+                input_batch = input_batch + (epsilon * torch.sign(adv_grads))
 
                 # keep pixel values in [-1, 1]
                 new_min, new_max = -1., 1.
