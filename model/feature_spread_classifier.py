@@ -14,8 +14,6 @@ from util.pytorch_utils import sillhouette_coefficient
 
 class FeatureSpreadClassifier():
     def __init__(self, config):
-        self.config = config
-
         # training device - try to find a gpu, if not just use cpu
         self.device = torch.device(
             'cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -23,10 +21,10 @@ class FeatureSpreadClassifier():
 
         # initialize model
         self.model = Classifier(
-            self.config['input_dimensions'],
-            self.config['output_dimension'],
-            hid_act=self.config['hidden_activation'],
-            norm=self.config['normalization'])
+            config['input_dimensions'],
+            config['output_dimension'],
+            hid_act=config['hidden_activation'],
+            norm=config['normalization'])
 
         # if model file provided, load pretrained params
         if config['model_file']:
@@ -41,15 +39,19 @@ class FeatureSpreadClassifier():
         # initialize an optimizer
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
-            lr=self.config['learning_rate'],
-            weight_decay=self.config['weight_decay']
+            lr=config['learning_rate'],
+            weight_decay=config['weight_decay']
         )
 
         # move the model to the training device
         self.model.to(self.device)
 
         # initialize tensorboard writer
-        self.writer = SummaryWriter(config['output_directory']+'runs/')
+        self.writer = SummaryWriter(
+            config['output_directory']+'runs/',
+            filename_suffix=config['model_name'])
+
+        self.config = config
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')

@@ -10,8 +10,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 class AdversarialClassifier():
     def __init__(self, config):
-        self.config = config
-
         # training device - try to find a gpu, if not just use cpu
         self.device = torch.device(
             'cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -19,8 +17,8 @@ class AdversarialClassifier():
 
         # initialize model
         self.model = Classifier(
-            self.config['input_dimensions'], self.config['output_dimension'],
-            hid_act=self.config['hidden_activation'],
+            config['input_dimensions'], config['output_dimension'],
+            hid_act=config['hidden_activation'],
             norm=config['normalization'])
 
         # if model file provided, load pretrained params
@@ -32,10 +30,10 @@ class AdversarialClassifier():
 
         # initialize guide model (for making adversarial samples)
         self.guide_model = Classifier(
-            self.config['input_dimensions'],
-            self.config['output_dimension'],
-            hid_act=self.config['hidden_activation'],
-            norm=self.config['normalization'])
+            config['input_dimensions'],
+            config['output_dimension'],
+            hid_act=config['hidden_activation'],
+            norm=config['normalization'])
 
         # must be able to load guide model to proceed
         self.guide_model.load_state_dict(
@@ -49,16 +47,19 @@ class AdversarialClassifier():
         # initialize an optimizer
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
-            lr=self.config['learning_rate'],
-            weight_decay=self.config['weight_decay']
-        )
+            lr=config['learning_rate'],
+            weight_decay=config['weight_decay'])
 
         # move the models to the training device
         self.model.to(self.device)
         self.guide_model.to(self.device)
 
         # initialize tensorboard writer
-        self.writer = SummaryWriter(config['output_directory']+'runs/')
+        self.writer = SummaryWriter(
+            config['output_directory']+'runs/',
+            filename_suffix=config['model_name'])
+
+        self.config = config
 
     def train_epochs(self, train_loader, test_loader):
         print('[INFO]: training...')
