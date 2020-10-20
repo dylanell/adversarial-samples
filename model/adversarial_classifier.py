@@ -1,6 +1,7 @@
 '''
 Adversarial classifier model class. This model is trained with advsarial
 samples.
+Reference: https://arxiv.org/pdf/1412.6572.pdf
 '''
 
 import torch
@@ -91,22 +92,27 @@ class AdversarialClassifier():
                 adv_loss.backward()
                 adv_grads = input_batch.grad
                 epsilon = 0.4 * torch.rand(1).to(self.device)
-                input_batch = input_batch + (epsilon * torch.sign(adv_grads))
+                adv_input_batch = input_batch + \
+                    (epsilon * torch.sign(adv_grads))
 
-                # keep pixel values in [-1, 1]
+                # keep pixel values of adv batch in [-1, 1]
                 new_min, new_max = -1., 1.
-                old_min = torch.min(input_batch)
-                old_max = torch.max(input_batch)
-                input_batch = (((input_batch - old_min) / \
+                old_min = torch.min(adv_input_batch)
+                old_max = torch.max(adv_input_batch)
+                adv_input_batch = (((adv_input_batch - old_min) / \
                     (old_max - old_min)) * \
                     (new_max - new_min)) + new_min
 
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
+                adv_logits_batch = self.model(adv_input_batch)
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
-                # compute loss
+                # compute combined normal/adversarial loss
                 loss = self.loss_fn(logits_batch, label_batch)
+                adv_loss = self.loss_fn(adv_logits_batch, label_batch)
+                alpha = 0.5
+                total_loss = (alpha * loss) + ((1 - alpha) * adv_loss)
 
                 # accumulate loss
                 train_epoch_loss += loss.item()
@@ -121,7 +127,7 @@ class AdversarialClassifier():
 
                 # compute gradients w.r.t loss (repopulate gradient
                 # attribute for all trainable params)
-                loss.backward()
+                total_loss.backward()
 
                 # update params with current gradients
                 self.optimizer.step()
