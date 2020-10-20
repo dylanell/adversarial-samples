@@ -68,3 +68,8 @@ $ jupyter-notebook notebook.ipynb
 ```
 
 ### References:
+
+1. Adversarial Samples:
+  * https://arxiv.org/pdf/1312.6199.pdf
+2. Adversarial Training:
+  * https://arxiv.org/pdf/1412.6572.pdf
