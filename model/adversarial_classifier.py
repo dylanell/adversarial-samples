@@ -24,45 +24,50 @@ class AdversarialClassifier():
 
         # if model file provided, load pretrained params
         if config['model_file']:
-            self.model.load_state_dict(
-                torch.load(config['model_file'], map_location=self.device))
-            print('[INFO]: loaded model from \'{}\''\
-                .format(config['model_file']))
+            self.load(config['model_file'])
 
-        # initialize guide model (for making adversarial samples)
-        self.guide_model = Classifier(
-            config['input_dimensions'],
-            config['output_dimension'],
-            hid_act=config['hidden_activation'],
-            norm=config['normalization'])
-
-        # must be able to load guide model to proceed
-        self.guide_model.load_state_dict(
-            torch.load(config['guide_model_file'], map_location=self.device))
-        print('[INFO]: loaded guide model from \'{}\''\
-            .format(config['guide_model_file']))
-
-        # define cross entropy loss (requires logits as outputs)
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-
-        # initialize an optimizer
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=config['learning_rate'],
-            weight_decay=config['weight_decay'])
-
-        # move the models to the training device
+        # move the model to the training device
         self.model.to(self.device)
-        self.guide_model.to(self.device)
-
-        # initialize tensorboard writer
-        self.writer = SummaryWriter(
-            config['output_directory']+'runs/',
-            filename_suffix=config['model_name'])
 
         self.config = config
 
+    def load(self, model_file):
+        self.model.load_state_dict(
+            torch.load(model_file, map_location=self.device))
+        print('[INFO]: loaded model from \'{}\''\
+            .format(model_file))
+
     def train_epochs(self, train_loader, test_loader):
+        # define cross entropy loss (requires logits as outputs)
+        loss_fn = torch.nn.CrossEntropyLoss()
+
+        # initialize an optimizer
+        optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=self.config['learning_rate'],
+            weight_decay=self.config['weight_decay'])
+
+        # initialize guide model (for making adversarial samples)
+        guide_model = Classifier(
+            self.config['input_dimensions'],
+            self.config['output_dimension'],
+            hid_act=self.config['hidden_activation'],
+            norm=self.config['normalization'])
+
+        # must be able to load guide model to proceed
+        guide_model.load_state_dict(
+            torch.load(self.config['guide_model_file'], map_location=self.device))
+        print('[INFO]: loaded guide model from \'{}\''\
+            .format(self.config['guide_model_file']))
+
+        # move guide model to the training device
+        guide_model.to(self.device)
+
+        # initialize tensorboard writer
+        writer = SummaryWriter(
+            self.config['output_directory']+'runs/',
+            filename_suffix=self.config['model_name'])
+
         print('[INFO]: training...')
 
         # train through all epochs
@@ -87,8 +92,8 @@ class AdversarialClassifier():
                 input_batch.requires_grad = True
 
                 # make adversarial samples from input batch
-                adv_logits_batch = self.guide_model(input_batch)
-                adv_loss = self.loss_fn(adv_logits_batch, label_batch)
+                adv_logits_batch = guide_model(input_batch)
+                adv_loss = loss_fn(adv_logits_batch, label_batch)
                 adv_loss.backward()
                 adv_grads = input_batch.grad
                 epsilon = (0.5 * ((2 * torch.rand(1)) - 1)).to(self.device)
@@ -109,8 +114,8 @@ class AdversarialClassifier():
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute combined normal/adversarial loss
-                loss = self.loss_fn(logits_batch, label_batch)
-                adv_loss = self.loss_fn(adv_logits_batch, label_batch)
+                loss = loss_fn(logits_batch, label_batch)
+                adv_loss = loss_fn(adv_logits_batch, label_batch)
                 alpha = 0.5
                 total_loss = (alpha * loss) + ((1 - alpha) * adv_loss)
 
@@ -123,14 +128,14 @@ class AdversarialClassifier():
                 ).item()
 
                 # zero out gradient attributes for all trainabe params
-                self.optimizer.zero_grad()
+                optimizer.zero_grad()
 
                 # compute gradients w.r.t loss (repopulate gradient
                 # attribute for all trainable params)
                 total_loss.backward()
 
                 # update params with current gradients
-                self.optimizer.step()
+                optimizer.step()
 
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
@@ -147,7 +152,7 @@ class AdversarialClassifier():
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute loss
-                loss = self.loss_fn(logits_batch, label_batch)
+                loss = loss_fn(logits_batch, label_batch)
 
                 # accumulate loss
                 test_epoch_loss += loss.item()
@@ -169,10 +174,10 @@ class AdversarialClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            self.writer.add_scalar('Loss/Train', train_loss, e+1)
-            self.writer.add_scalar('Accuracy/Train', train_acc, e+1)
-            self.writer.add_scalar('Loss/Test', test_loss, e+1)
-            self.writer.add_scalar('Accuracy/Test', test_acc, e+1)
+            writer.add_scalar('Loss/Train', train_loss, e+1)
+            writer.add_scalar('Accuracy/Train', train_acc, e+1)
+            writer.add_scalar('Loss/Test', test_loss, e+1)
+            writer.add_scalar('Accuracy/Test', test_acc, e+1)
 
             # print epoch metrics
             template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\

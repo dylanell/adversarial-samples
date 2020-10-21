@@ -22,26 +22,6 @@ class SmoothClassifier():
             hid_act=config['hidden_activation'],
             norm=config['normalization'])
 
-        # if model file provided, load pretrained params
-        if config['model_file']:
-            self.model.load_state_dict(
-                torch.load(config['model_file'], map_location=self.device))
-            print('[INFO]: loaded model from \'{}\''\
-                .format(config['model_file']))
-
-        # define cross entropy loss (requires logits as outputs)
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-
-        # initialize an optimizer
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=config['learning_rate'],
-            weight_decay=config['weight_decay']
-        )
-
-        # move the model to the training device
-        self.model.to(self.device)
-
         # initialize a random input distribution
         self.n_samples = 16
         mean = 0.0
@@ -61,14 +41,36 @@ class SmoothClassifier():
                 config['input_dimensions'][1])
         )
 
-        # initialize tensorboard writer
-        self.writer = SummaryWriter(
-            config['output_directory']+'runs/',
-            filename_suffix=config['model_name'])
+        # if model file provided, load pretrained params
+        if config['model_file']:
+            self.load(config['model_file'])
+
+        # move the model to the training device
+        self.model.to(self.device)
 
         self.config = config
 
+    def load(self, model_file):
+        self.model.load_state_dict(
+            torch.load(model_file, map_location=self.device))
+        print('[INFO]: loaded model from \'{}\''\
+            .format(model_file))
+
     def train_epochs(self, train_loader, test_loader):
+        # define cross entropy loss (requires logits as outputs)
+        loss_fn = torch.nn.CrossEntropyLoss()
+
+        # initialize an optimizer
+        optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=self.config['learning_rate'],
+            weight_decay=self.config['weight_decay'])
+
+        # initialize tensorboard writer
+        writer = SummaryWriter(
+            self.config['output_directory']+'runs/',
+            filename_suffix=self.config['model_name'])
+
         print('[INFO]: training...')
 
         # train through all epochs
@@ -109,7 +111,7 @@ class SmoothClassifier():
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute loss
-                loss = self.loss_fn(logits_batch, label_batch)
+                loss = loss_fn(logits_batch, label_batch)
 
                 # accumulate loss
                 train_epoch_loss += loss.item()
@@ -120,14 +122,14 @@ class SmoothClassifier():
                 ).item()
 
                 # zero out gradient attributes for all trainabe params
-                self.optimizer.zero_grad()
+                optimizer.zero_grad()
 
                 # compute gradients w.r.t loss (repopulate gradient
                 # attribute for all trainable params)
                 loss.backward()
 
                 # update params with current gradients
-                self.optimizer.step()
+                optimizer.step()
 
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
@@ -145,7 +147,7 @@ class SmoothClassifier():
                 pred_batch = torch.argmax(logits_batch, dim=1)
 
                 # compute loss
-                loss = self.loss_fn(logits_batch, label_batch)
+                loss = loss_fn(logits_batch, label_batch)
 
                 # accumulate loss
                 test_epoch_loss += loss.item()
@@ -167,10 +169,10 @@ class SmoothClassifier():
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            self.writer.add_scalar('Loss/Train', train_loss, e+1)
-            self.writer.add_scalar('Accuracy/Train', train_acc, e+1)
-            self.writer.add_scalar('Loss/Test', test_loss, e+1)
-            self.writer.add_scalar('Accuracy/Test', test_acc, e+1)
+            writer.add_scalar('Loss/Train', train_loss, e+1)
+            writer.add_scalar('Accuracy/Train', train_acc, e+1)
+            writer.add_scalar('Loss/Test', test_loss, e+1)
+            writer.add_scalar('Accuracy/Test', test_acc, e+1)
 
             # print epoch metrics
             template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
