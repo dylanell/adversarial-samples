@@ -43,13 +43,22 @@ class SmoothClassifier():
         self.model.to(self.device)
 
         # initialize a random input distribution
-        self.input_dist = torch.distributions.Uniform(
-            -1.*torch.ones(
-                config['batch_size'], config['input_dimensions'][-1],
-                config['input_dimensions'][0], config['input_dimensions'][1]),
-            torch.ones(
-                config['batch_size'], config['input_dimensions'][-1],
-                config['input_dimensions'][0], config['input_dimensions'][1])
+        self.n_samples = 16
+        mean = 0.0
+        stdev = 0.25
+        self.input_dist = torch.distributions.Normal(
+            mean * torch.ones(
+                config['batch_size'],
+                self.n_samples,
+                config['input_dimensions'][-1],
+                config['input_dimensions'][0],
+                config['input_dimensions'][1]),
+            stdev * torch.ones(
+                config['batch_size'],
+                self.n_samples,
+                config['input_dimensions'][-1],
+                config['input_dimensions'][0],
+                config['input_dimensions'][1])
         )
 
         # initialize tensorboard writer
@@ -83,8 +92,17 @@ class SmoothClassifier():
                 bs = input_batch.shape[0]
 
                 # add noise to input batch
-                input_batch += \
-                    0.2 * self.input_dist.sample()[:bs].to(self.device)
+                input_batch = input_batch.unsqueeze(1) + \
+                    self.input_dist.sample()[:bs].to(self.device)
+
+                # reshape input batch by stacking samples into batch dimension
+                input_batch = input_batch.view((
+                    bs*self.n_samples,
+                    self.config['input_dimensions'][-1], self.config['input_dimensions'][0], self.config['input_dimensions'][1]))
+
+                # repeat and interleave label batch to repeat labels for each
+                # samples stacked into batch dimension
+                label_batch = label_batch.repeat_interleave(self.n_samples)
 
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
