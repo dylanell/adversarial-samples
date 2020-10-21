@@ -73,3 +73,9 @@ $ jupyter-notebook notebook.ipynb
   * https://arxiv.org/pdf/1312.6199.pdf
 2. Adversarial Training:
   * https://arxiv.org/pdf/1412.6572.pdf
+3. Smoothing Defense:
+  * https://arxiv.org/pdf/1902.02918.pdf%5D
+4. Distillation Defense:
+  * https://arxiv.org/pdf/1511.04508.pdf
+5. Feature Space Defense:
+  * https://arxiv.org/pdf/1904.00887.pdf
