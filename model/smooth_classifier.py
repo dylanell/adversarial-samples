@@ -131,7 +131,8 @@ class SmoothClassifier():
 
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
-            train_acc = 100.0 * train_num_correct / self.config['number_train']
+            train_acc = 100.0 * train_num_correct / \
+                (self.config['number_train'] * self.n_samples)
 
             # run through epoch of test data
             for i, batch in enumerate(test_loader):
