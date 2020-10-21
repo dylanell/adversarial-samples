@@ -91,7 +91,7 @@ class AdversarialClassifier():
                 adv_loss = self.loss_fn(adv_logits_batch, label_batch)
                 adv_loss.backward()
                 adv_grads = input_batch.grad
-                epsilon = 0.4 * torch.rand(1).to(self.device)
+                epsilon = (0.5 * ((2 * torch.rand(1)) - 1)).to(self.device)
                 adv_input_batch = input_batch + \
                     (epsilon * torch.sign(adv_grads))
 
