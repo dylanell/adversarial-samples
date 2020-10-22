@@ -129,6 +129,14 @@ class SmoothClassifier():
                     bs*self.n_samples,
                     self.config['input_dimensions'][-1], self.config['input_dimensions'][0], self.config['input_dimensions'][1]))
 
+                # keep pixel values of batch in [-1, 1]
+                new_min, new_max = -1., 1.
+                old_min = torch.min(input_batch)
+                old_max = torch.max(input_batch)
+                input_batch = (((input_batch - old_min) / \
+                    (old_max - old_min)) * \
+                    (new_max - new_min)) + new_min
+
                 # repeat and interleave label batch to repeat labels for each
                 # samples stacked into batch dimension
                 label_batch = label_batch.repeat_interleave(self.n_samples)
