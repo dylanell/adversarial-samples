@@ -37,6 +37,12 @@ class AdversarialClassifier():
         print('[INFO]: loaded model from \'{}\''\
             .format(model_file))
 
+    def logits(self, x):
+        return self.model(x)
+
+    def predict(self, x):
+        return torch.argmax(self.model(x), dim=1)
+
     def train_epochs(self, train_loader, test_loader):
         # define cross entropy loss (requires logits as outputs)
         loss_fn = torch.nn.CrossEntropyLoss()

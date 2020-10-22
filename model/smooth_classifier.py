@@ -23,7 +23,7 @@ class SmoothClassifier():
             norm=config['normalization'])
 
         # initialize a random input distribution
-        self.n_samples = 16
+        self.n_samples = 32
         mean = 0.0
         stdev = 0.25
         self.input_dist = torch.distributions.Normal(
@@ -55,6 +55,33 @@ class SmoothClassifier():
             torch.load(model_file, map_location=self.device))
         print('[INFO]: loaded model from \'{}\''\
             .format(model_file))
+
+    def logits(self, x):
+        return self.model(x)
+
+    def predict(self, x):
+        # get number of samples in batch
+        bs = x.shape[0]
+
+        # add noise to input batch
+        x = x.unsqueeze(1) + self.input_dist.sample()[:bs].to(self.device)
+
+        # reshape input batch by stacking samples into batch dimension
+        x = x.view((
+            bs*self.n_samples,
+            self.config['input_dimensions'][-1], self.config['input_dimensions'][0], self.config['input_dimensions'][1]))
+
+        # compute output batch logits and predictions
+        logits = self.model(x)
+        pred = torch.argmax(logits, dim=1)
+
+        # reshape predictions to unstack samples from batch dimension
+        pred = pred.view((bs, self.n_samples))
+
+        # take mode along sample dim to get final prediction
+        pred = torch.mode(pred, dim=1)[0]
+
+        return pred
 
     def train_epochs(self, train_loader, test_loader):
         # define cross entropy loss (requires logits as outputs)
