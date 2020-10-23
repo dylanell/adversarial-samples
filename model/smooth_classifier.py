@@ -94,9 +94,8 @@ class SmoothClassifier():
             weight_decay=self.config['weight_decay'])
 
         # initialize tensorboard writer
-        writer = SummaryWriter(
-            self.config['output_directory']+'runs/',
-            filename_suffix=self.config['model_name'])
+        writer = SummaryWriter('{}runs/{}/'.format(
+            self.config['output_directory'], self.config['model_name']))
 
         print('[INFO]: training...')
 
