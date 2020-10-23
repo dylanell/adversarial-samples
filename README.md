@@ -49,7 +49,7 @@ If you would like to re-use the code here to work with other image datasets, jus
 
 ### Training:
 
-Training options and hyperparameters are pulled from the `config.yaml` file and can be changed by editing the file contents. The `train.py` scripts only several specific values for the `model_type` variable in `coinfig.yaml` coorrespoinding to the type of classifier model you would like to train. Additionally, when the `adversary` variable is `False`, the training script uses the second half of the training data split as trainin data and when the `adversary` variable is `True`, it uses the first half of the training data split.
+Training options and hyperparameters are pulled from the `config.yaml` file and can be changed by editing the file contents. The `train.py` scripts only several specific values for the `model_type` variable in `coinfig.yaml` coorrespoinding to the type of classifier model you would like to train. Additionally, when the `adversary` variable is `False`, the training script uses the second half of the training data split as training data and when the `adversary` variable is `True`, it uses the first half of the training data split.
 
 Train a classifier by running:
 
