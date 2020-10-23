@@ -1,6 +1,11 @@
 # advserarial-samples
 Exploration of adversarial samples generated for a CNN classifier.
 
+| ![](images/automobile.png) |
+| :-: |
+| ![](images/adversarial_automobile.png) |
+| *Sample from CIFAR-10 dataset with classifier prediction before and after being altered to be an adversarial sample.* |
+
 ### Environment:
 
 - Python 3.7.4
