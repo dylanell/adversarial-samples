@@ -4,7 +4,7 @@ Exploration of adversarial samples generated for a CNN classifier.
 | ![](images/automobile.png) |
 | :-: |
 | ![](images/adversarial_automobile.png) |
-| *Sample from CIFAR-10 dataset with classifier prediction before and after being altered to be an adversarial sample.* |
+| *Sample from CIFAR-10 dataset with classifier prediction before and after being altered for a model attack.* |
 
 ### Environment:
 
@@ -65,6 +65,10 @@ $ python train.py
 ### Jupyter Notebook:
 
 This project is accompanied by a Jupyter notebook that explains some of the theory behind generating adversarial samples using the Fast Gradient Sign Method (FGSM) as well as some analysis of how several models perform on adversarial samples.
+
+| ![](images/performance.png) |
+| :-: |
+| *Accuracy of several classifier models as adversarial attack strength increases.* |
 
 Run the following command to start the Jupyter notebook server in your browser:
 
