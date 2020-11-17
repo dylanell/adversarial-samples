@@ -1,12 +1,13 @@
-'''
+"""
 Smooth classifier model class. This model is trained with a regularizer
 that smooths model output as it is randomly perturbed.
-'''
+"""
 
 import torch
 from module.classifier import Classifier
 import time
 from torch.utils.tensorboard import SummaryWriter
+
 
 class SmoothClassifier():
     def __init__(self, config):
@@ -53,8 +54,8 @@ class SmoothClassifier():
     def load(self, model_file):
         self.model.load_state_dict(
             torch.load(model_file, map_location=self.device))
-        print('[INFO]: loaded model from \'{}\''\
-            .format(model_file))
+        print('[INFO]: loaded model from \'{}\''
+              .format(model_file))
 
     def logits(self, x):
         return self.model(x)
@@ -68,8 +69,10 @@ class SmoothClassifier():
 
         # reshape input batch by stacking samples into batch dimension
         x = x.view((
-            bs*self.n_samples,
-            self.config['input_dimensions'][-1], self.config['input_dimensions'][0], self.config['input_dimensions'][1]))
+            bs * self.n_samples,
+            self.config['input_dimensions'][-1],
+            self.config['input_dimensions'][0],
+            self.config['input_dimensions'][1]))
 
         # compute output batch logits and predictions
         logits = self.model(x)
@@ -120,21 +123,22 @@ class SmoothClassifier():
                 bs = input_batch.shape[0]
 
                 # add noise to input batch
-                input_batch = input_batch.unsqueeze(1) + \
-                    self.input_dist.sample()[:bs].to(self.device)
+                input_batch = input_batch.unsqueeze(1) \
+                    + self.input_dist.sample()[:bs].to(self.device)
 
                 # reshape input batch by stacking samples into batch dimension
                 input_batch = input_batch.view((
-                    bs*self.n_samples,
-                    self.config['input_dimensions'][-1], self.config['input_dimensions'][0], self.config['input_dimensions'][1]))
+                    bs * self.n_samples,
+                    self.config['input_dimensions'][-1],
+                    self.config['input_dimensions'][0],
+                    self.config['input_dimensions'][1]))
 
                 # keep pixel values of batch in [-1, 1]
                 new_min, new_max = -1., 1.
                 old_min = torch.min(input_batch)
                 old_max = torch.max(input_batch)
-                input_batch = (((input_batch - old_min) / \
-                    (old_max - old_min)) * \
-                    (new_max - new_min)) + new_min
+                input_batch = (((input_batch - old_min) / (
+                        old_max - old_min)) * (new_max - new_min)) + new_min
 
                 # repeat and interleave label batch to repeat labels for each
                 # samples stacked into batch dimension
@@ -152,10 +156,9 @@ class SmoothClassifier():
 
                 # accumulate number correct
                 train_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
-                # zero out gradient attributes for all trainabe params
+                # zero out gradient attributes for all trainable params
                 optimizer.zero_grad()
 
                 # compute gradients w.r.t loss (repopulate gradient
@@ -167,8 +170,8 @@ class SmoothClassifier():
 
             # compute epoch average loss and accuracy metrics
             train_loss = train_epoch_loss / i
-            train_acc = 100.0 * train_num_correct / \
-                (self.config['number_train'] * self.n_samples)
+            train_acc = 100.0 * train_num_correct \
+                / (self.config['number_train'] * self.n_samples)
 
             # run through epoch of test data
             for i, batch in enumerate(test_loader):
@@ -188,8 +191,7 @@ class SmoothClassifier():
 
                 # accumulate number correct
                 test_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
             # compute epoch average loss and accuracy metrics
             test_loss = test_epoch_loss / i
@@ -199,18 +201,18 @@ class SmoothClassifier():
             epoch_time = time.time() - epoch_start
 
             # save model
-            torch.save(self.model.state_dict(),'{}{}.pt'.format(
+            torch.save(self.model.state_dict(), '{}{}.pt'.format(
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            writer.add_scalar('Loss/Train', train_loss, e+1)
-            writer.add_scalar('Accuracy/Train', train_acc, e+1)
-            writer.add_scalar('Loss/Test', test_loss, e+1)
-            writer.add_scalar('Accuracy/Test', test_acc, e+1)
+            writer.add_scalar('Loss/Train', train_loss, e + 1)
+            writer.add_scalar('Accuracy/Train', train_acc, e + 1)
+            writer.add_scalar('Loss/Test', test_loss, e + 1)
+            writer.add_scalar('Accuracy/Test', test_acc, e + 1)
 
             # print epoch metrics
-            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
-                'Train Loss: {:.2f}, Train Accuracy: {:.2f}, '\
-                'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
-            print(template.format(e+1, epoch_time, train_loss,
-                train_acc, test_loss, test_acc))
+            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, ' \
+                       'Train Loss: {:.2f}, Train Accuracy: {:.2f}, ' \
+                       'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
+            print(template.format(e + 1, epoch_time, train_loss,
+                                  train_acc, test_loss, test_acc))

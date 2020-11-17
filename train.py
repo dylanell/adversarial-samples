@@ -1,10 +1,8 @@
-'''
+"""
 Script to train a CNN classifier with PyTorch.
-'''
+"""
 
 import yaml
-import torch
-from torchvision.transforms import transforms
 
 from util.pytorch_utils import build_image_dataset
 from util.data_utils import generate_df_from_image_dataset
@@ -12,6 +10,7 @@ from model.vanilla_classifier import VanillaClassifier
 from model.adversarial_classifier import AdversarialClassifier
 from model.smooth_classifier import SmoothClassifier
 from model.feature_spread_classifier import FeatureSpreadClassifier
+
 
 def main():
     # parse configuration file
@@ -29,10 +28,10 @@ def main():
     # otherwise use the last 20000 training samples
     if config['adversary']:
         train_df = data_dict['train'].iloc[
-            :int(len(data_dict['train'])/2), :]
+                   :int(len(data_dict['train']) / 2), :]
     else:
         train_df = data_dict['train'].iloc[
-            int(len(data_dict['train'])/2):, :]
+                   int(len(data_dict['train']) / 2):, :]
 
     # add number of samples to config
     config['number_train'] = len(train_df)
@@ -64,12 +63,13 @@ def main():
     elif config['model_type'] == 'feature_spread_classifier':
         model = FeatureSpreadClassifier(config)
     else:
-        print('[ERROR]: unknown model type \'{}\''\
-            .format(config['model_type']))
+        print('[ERROR]: unknown model type \'{}\''
+              .format(config['model_type']))
         exit()
 
     # train the model
     model.train_epochs(train_loader, test_loader)
+
 
 if __name__ == '__main__':
     main()

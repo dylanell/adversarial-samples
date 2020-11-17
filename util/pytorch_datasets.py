@@ -1,16 +1,17 @@
-'''
+"""
 PyTorch dataset classes.
 Reference:
     https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
-'''
+"""
 
 import torch
 from PIL import Image
 
+
 class ImageDataset(torch.utils.data.Dataset):
-    '''
+    """
     Make a PyTorch dataset from a dataframe of image files and labels.
-    '''
+    """
 
     def __init__(self, df, transform=None):
         self.df = df

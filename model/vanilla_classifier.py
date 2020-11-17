@@ -1,11 +1,12 @@
-'''
+"""
 Vanilla classifier model class.
-'''
+"""
 
 import torch
 from module.classifier import Classifier
 import time
 from torch.utils.tensorboard import SummaryWriter
+
 
 class VanillaClassifier():
     def __init__(self, config):
@@ -33,8 +34,8 @@ class VanillaClassifier():
     def load(self, model_file):
         self.model.load_state_dict(
             torch.load(model_file, map_location=self.device))
-        print('[INFO]: loaded model from \'{}\''\
-            .format(model_file))
+        print('[INFO]: loaded model from \'{}\''
+              .format(model_file))
 
     def logits(self, x):
         return self.model(x)
@@ -87,10 +88,9 @@ class VanillaClassifier():
 
                 # accumulate number correct
                 train_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
-                # zero out gradient attributes for all trainabe params
+                # zero out gradient attributes for all trainable params
                 optimizer.zero_grad()
 
                 # compute gradients w.r.t loss (repopulate gradient
@@ -122,8 +122,7 @@ class VanillaClassifier():
 
                 # accumulate number correct
                 test_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
             # compute epoch average loss and accuracy metrics
             test_loss = test_epoch_loss / i
@@ -133,18 +132,18 @@ class VanillaClassifier():
             epoch_time = time.time() - epoch_start
 
             # save model
-            torch.save(self.model.state_dict(),'{}{}.pt'.format(
+            torch.save(self.model.state_dict(), '{}{}.pt'.format(
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            writer.add_scalar('Loss/Train', train_loss, e+1)
-            writer.add_scalar('Accuracy/Train', train_acc, e+1)
-            writer.add_scalar('Loss/Test', test_loss, e+1)
-            writer.add_scalar('Accuracy/Test', test_acc, e+1)
+            writer.add_scalar('Loss/Train', train_loss, e + 1)
+            writer.add_scalar('Accuracy/Train', train_acc, e + 1)
+            writer.add_scalar('Loss/Test', test_loss, e + 1)
+            writer.add_scalar('Accuracy/Test', test_acc, e + 1)
 
             # print epoch metrics
-            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
-                'Train Loss: {:.2f}, Train Accuracy: {:.2f}, '\
-                'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
-            print(template.format(e+1, epoch_time, train_loss,
-                train_acc, test_loss, test_acc))
+            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, ' \
+                       'Train Loss: {:.2f}, Train Accuracy: {:.2f}, ' \
+                       'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
+            print(template.format(e + 1, epoch_time, train_loss,
+                                  train_acc, test_loss, test_acc))

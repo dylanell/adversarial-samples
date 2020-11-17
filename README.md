@@ -1,4 +1,4 @@
-# advserarial-samples
+# adversarial-samples
 Exploration of adversarial samples generated for a CNN classifier.
 
 | ![](images/automobile.png) |
@@ -18,7 +18,7 @@ Exploration of adversarial samples generated for a CNN classifier.
 - imageio
 - pandas
 - pyyaml
-- mayplotlib
+- matplotlib
 - plotly
 
 ### Image Dataset Format:
@@ -88,3 +88,5 @@ $ jupyter-notebook notebook.ipynb
   * https://arxiv.org/pdf/1511.04508.pdf
 5. Feature Space Defense:
   * https://arxiv.org/pdf/1904.00887.pdf
+6. Silhouette Coefficient:
+  * https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation

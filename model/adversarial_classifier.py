@@ -1,13 +1,14 @@
-'''
-Adversarial classifier model class. This model is trained with advsarial
+"""
+Adversarial classifier model class. This model is trained with adversarial
 samples.
 Reference: https://arxiv.org/pdf/1412.6572.pdf
-'''
+"""
 
 import torch
 from module.classifier import Classifier
 import time
 from torch.utils.tensorboard import SummaryWriter
+
 
 class AdversarialClassifier():
     def __init__(self, config):
@@ -34,8 +35,8 @@ class AdversarialClassifier():
     def load(self, model_file):
         self.model.load_state_dict(
             torch.load(model_file, map_location=self.device))
-        print('[INFO]: loaded model from \'{}\''\
-            .format(model_file))
+        print('[INFO]: loaded model from \'{}\''
+              .format(model_file))
 
     def logits(self, x):
         return self.model(x)
@@ -62,9 +63,10 @@ class AdversarialClassifier():
 
         # must be able to load guide model to proceed
         guide_model.load_state_dict(
-            torch.load(self.config['guide_model_file'], map_location=self.device))
-        print('[INFO]: loaded guide model from \'{}\''\
-            .format(self.config['guide_model_file']))
+            torch.load(self.config['guide_model_file'],
+                       map_location=self.device))
+        print('[INFO]: loaded guide model from \'{}\''
+              .format(self.config['guide_model_file']))
 
         # move guide model to the training device
         guide_model.to(self.device)
@@ -93,7 +95,7 @@ class AdversarialClassifier():
                 label_batch = batch['label'].to(self.device)
 
                 # require gradient for input data (need to do this to compute
-                # the gradients for inputs dutring backward() call)
+                # the gradients for inputs during backward() call)
                 input_batch.requires_grad = True
 
                 # make adversarial samples from input batch
@@ -102,16 +104,15 @@ class AdversarialClassifier():
                 adv_loss.backward()
                 adv_grads = input_batch.grad
                 epsilon = (0.5 * ((2 * torch.rand(1)) - 1)).to(self.device)
-                adv_input_batch = input_batch + \
-                    (epsilon * torch.sign(adv_grads))
+                adv_input_batch = input_batch + (
+                        epsilon * torch.sign(adv_grads))
 
                 # keep pixel values of adv batch in [-1, 1]
                 new_min, new_max = -1., 1.
                 old_min = torch.min(adv_input_batch)
                 old_max = torch.max(adv_input_batch)
-                adv_input_batch = (((adv_input_batch - old_min) / \
-                    (old_max - old_min)) * \
-                    (new_max - new_min)) + new_min
+                adv_input_batch = (((adv_input_batch - old_min) / (
+                        old_max - old_min)) * (new_max - new_min)) + new_min
 
                 # compute output batch logits and predictions
                 logits_batch = self.model(input_batch)
@@ -129,10 +130,9 @@ class AdversarialClassifier():
 
                 # accumulate number correct
                 train_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
-                # zero out gradient attributes for all trainabe params
+                # zero out gradient attributes for all trainable params
                 optimizer.zero_grad()
 
                 # compute gradients w.r.t loss (repopulate gradient
@@ -164,8 +164,7 @@ class AdversarialClassifier():
 
                 # accumulate number correct
                 test_num_correct += torch.sum(
-                    (pred_batch == label_batch)
-                ).item()
+                    torch.tensor(pred_batch == label_batch)).item()
 
             # compute epoch average loss and accuracy metrics
             test_loss = test_epoch_loss / i
@@ -175,18 +174,18 @@ class AdversarialClassifier():
             epoch_time = time.time() - epoch_start
 
             # save model
-            torch.save(self.model.state_dict(),'{}{}.pt'.format(
+            torch.save(self.model.state_dict(), '{}{}.pt'.format(
                 self.config['output_directory'], self.config['model_name']))
 
             # add metrics to tensorboard
-            writer.add_scalar('Loss/Train', train_loss, e+1)
-            writer.add_scalar('Accuracy/Train', train_acc, e+1)
-            writer.add_scalar('Loss/Test', test_loss, e+1)
-            writer.add_scalar('Accuracy/Test', test_acc, e+1)
+            writer.add_scalar('Loss/Train', train_loss, e + 1)
+            writer.add_scalar('Accuracy/Train', train_acc, e + 1)
+            writer.add_scalar('Loss/Test', test_loss, e + 1)
+            writer.add_scalar('Accuracy/Test', test_acc, e + 1)
 
             # print epoch metrics
-            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, '\
-                'Train Loss: {:.2f}, Train Accuracy: {:.2f}, '\
-                'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
-            print(template.format(e+1, epoch_time, train_loss,
-                train_acc, test_loss, test_acc))
+            template = '[INFO]: Epoch {}, Epoch Time {:.2f}s, ' \
+                       'Train Loss: {:.2f}, Train Accuracy: {:.2f}, ' \
+                       'Test Loss: {:.2f}, Test Accuracy: {:.2f}'
+            print(template.format(e + 1, epoch_time, train_loss,
+                                  train_acc, test_loss, test_acc))

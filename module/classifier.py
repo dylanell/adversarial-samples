@@ -1,9 +1,8 @@
-'''
+"""
 CNN classifier implemented in PyTorch.
-'''
+"""
 
 import torch
-import torch.nn.functional as F
 
 # torch activation functions
 activation = {
@@ -12,6 +11,7 @@ activation = {
     'tanh': torch.nn.Tanh(),
     'sigmoid': torch.nn.Sigmoid()
 }
+
 
 class Classifier(torch.nn.Module):
     # initialize and define all layers
@@ -52,7 +52,7 @@ class Classifier(torch.nn.Module):
             self.norm_5 = torch.nn.Identity()
 
         # define fully connected layers
-        self.fc_1 = torch.nn.Linear(512*2*2, out_dim)
+        self.fc_1 = torch.nn.Linear(512 * 2 * 2, out_dim)
 
         # define activation functions
         self.hid_act = activation[hid_act]
@@ -69,7 +69,7 @@ class Classifier(torch.nn.Module):
         z_6 = self.fc_1(z_5_flat)
         return z_6
 
-    # return all hiddeen feature representations
+    # return all hidden feature representations
     def hidden(self, x):
         # compute output
         z_1 = self.hid_act(self.norm_1(self.conv_1(x)))
